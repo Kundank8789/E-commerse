@@ -23,7 +23,7 @@ export default function Navbar() {
         </Link>
 
         <Link href="/cart" className="hover:text-blue-500 transition">
-          Cart
+          🛒 Cart
         </Link>
 
         <Link href="/login">
