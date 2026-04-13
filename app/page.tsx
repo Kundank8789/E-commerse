@@ -1,15 +1,34 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/home/Hero";
 import Categories from "../components/home/Categories";
-import Products from "../components/home/Products";
+import NewArrivals from "../components/home/NewArrivals";
+import FeaturedProducts from "../components/home/FeaturedProducts";
+import PromoBanner from "../components/home/PromoBanner";
+import Newsletter from "../components/home/Newsletter";
+import Footer from "../components/Footer";
 
 export default function Home() {
   return (
     <>
       <Navbar />
-      <Hero />
-      <Categories />
-      <Products />
+
+      <main className="max-w-7xl mx-auto px-6 space-y-24">
+
+        <Hero />
+
+        <Categories />
+
+        <NewArrivals />
+
+        <FeaturedProducts />
+
+        <PromoBanner />
+
+        <Newsletter />
+
+      </main>
+
+      <Footer />
     </>
   );
 }
