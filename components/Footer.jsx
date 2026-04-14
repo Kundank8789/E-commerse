@@ -1,94 +1,79 @@
+"use client";
+
 import Link from "next/link";
+import { FaInstagram, FaTwitter, FaFacebook } from "react-icons/fa";
 
 export default function Footer() {
-return ( <footer className="bg-black text-white pt-16 pb-8 mt-20">
+  return (
+    <footer className="bg-black text-white pt-20 pb-10 border-t border-white/10">
 
-  <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
 
-    {/* Brand */}
-    <div>
-      <h2 className="text-2xl font-bold">MY STORE</h2>
-      <p className="text-gray-400 mt-3">
-        Modern fashion ecommerce store bringing premium style and comfort.
-      </p>
-    </div>
+        {/* Brand */}
+        <div>
+          <h2 className="text-2xl font-bold tracking-widest">ZIVA</h2>
+          <p className="text-gray-400 mt-4 text-sm leading-relaxed">
+            Premium fashion for modern lifestyle. Designed for comfort and style.
+          </p>
 
-    {/* Shop Links */}
-    <div>
-      <h3 className="font-semibold text-lg">Shop</h3>
-      <ul className="mt-4 space-y-2 text-gray-400">
-        <li>
-          <Link href="/products" className="hover:text-white transition">
-            All Products
-          </Link>
-        </li>
-        <li>
-          <Link href="/collections" className="hover:text-white transition">
-            Collections
-          </Link>
-        </li>
-        <li>
-          <Link href="/new" className="hover:text-white transition">
-            New Arrivals
-          </Link>
-        </li>
-      </ul>
-    </div>
+          {/* Social Icons */}
+          <div className="flex gap-4 mt-6">
+            <FaInstagram className="w-5 h-5 cursor-pointer hover:scale-110 transition" />
+            <FaTwitter className="w-5 h-5 cursor-pointer hover:scale-110 transition" />
+            <FaFacebook className="w-5 h-5 cursor-pointer hover:scale-110 transition" />
+          </div>
+        </div>
 
-    {/* Support */}
-    <div>
-      <h3 className="font-semibold text-lg">Support</h3>
-      <ul className="mt-4 space-y-2 text-gray-400">
-        <li>
-          <Link href="/contact" className="hover:text-white transition">
-            Contact Us
-          </Link>
-        </li>
-        <li>
-          <Link href="/faq" className="hover:text-white transition">
-            FAQ
-          </Link>
-        </li>
-        <li>
-          <Link href="/returns" className="hover:text-white transition">
-            Returns
-          </Link>
-        </li>
-      </ul>
-    </div>
+        {/* Shop */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4">Shop</h3>
+          <ul className="space-y-2 text-gray-400 text-sm">
+            <li><Link href="/products" className="hover:text-white">All Products</Link></li>
+            <li><Link href="/collections" className="hover:text-white">Collections</Link></li>
+            <li><Link href="/new" className="hover:text-white">New Arrivals</Link></li>
+          </ul>
+        </div>
 
-    {/* Newsletter */}
-    <div>
-      <h3 className="font-semibold text-lg">Newsletter</h3>
+        {/* Support */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4">Support</h3>
+          <ul className="space-y-2 text-gray-400 text-sm">
+            <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
+            <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
+            <li><Link href="/returns" className="hover:text-white">Returns</Link></li>
+          </ul>
+        </div>
 
-      <p className="text-gray-400 mt-3">
-        Subscribe to get updates on new arrivals and offers.
-      </p>
+        {/* Newsletter */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4">Newsletter</h3>
 
-      <div className="flex mt-4">
+          <p className="text-gray-400 text-sm">
+            Get updates on new arrivals and exclusive offers.
+          </p>
 
-        <input
-          type="email"
-          placeholder="Enter email"
-          className="px-3 py-2 w-full rounded-l-lg text-black"
-        />
+          <div className="flex mt-5 overflow-hidden rounded-full border border-white/20">
 
-        <button className="bg-white text-black px-4 rounded-r-lg hover:bg-gray-200 transition">
-          Subscribe
-        </button>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="px-4 py-2 w-full bg-transparent text-white placeholder-gray-400 focus:outline-none"
+            />
+
+            <button className="bg-white text-black px-5 hover:bg-gray-200 transition">
+              Join
+            </button>
+
+          </div>
+        </div>
 
       </div>
-    </div>
 
-  </div>
+      {/* Bottom */}
+      <div className="mt-14 pt-6 border-t border-white/10 text-center text-gray-500 text-xs">
+        © 2026 ZIVA. All rights reserved.
+      </div>
 
-  {/* Bottom Section */}
-  <div className="border-t border-gray-800 mt-12 pt-6 text-center text-gray-500 text-sm">
-    © 2026 ZIVA. All rights reserved.
-  </div>
-
-</footer>
-
-
-);
+    </footer>
+  );
 }

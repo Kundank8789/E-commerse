@@ -1,57 +1,84 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { FaShoppingBag } from "react-icons/fa";
+import { FiMenu, FiX } from "react-icons/fi";
 
 export default function Navbar() {
-  return (
-    <nav className="bg-black text-white px-6 py-4 shadow-md sticky top-0 z-50">
+  const [open, setOpen] = useState(false);
 
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+  return (
+    <nav className="sticky top-0 z-50 backdrop-blur-md bg-black/70 border-b border-white/10">
+      
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
         {/* Logo */}
         <Link href="/">
-          <h1 className="text-2xl font-bold tracking-wide hover:text-gray-300 transition">
-            MyStore
+          <h1 className="text-2xl font-bold tracking-widest hover:opacity-80 transition">
+            MY SHOPPING
           </h1>
         </Link>
 
-        {/* Menu */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-10 text-sm font-medium">
 
-          <Link
-            href="/"
-            className="hover:text-gray-300 transition relative after:block after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
-          >
+          <Link href="/" className="hover:text-gray-300 transition">
             Home
           </Link>
 
-          <Link
-            href="/products"
-            className="hover:text-gray-300 transition relative after:block after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
-          >
-            Products
+          <Link href="/products" className="hover:text-gray-300 transition">
+            Shop
+          </Link>
+
+          <Link href="#" className="hover:text-gray-300 transition">
+            New
           </Link>
 
           {/* Cart */}
-          <Link
-            href="/cart"
-            className="relative hover:text-gray-300 transition"
-          >
-            🛒 Cart
-            <span className="absolute -top-2 -right-3 bg-red-500 text-xs px-2 rounded-full">
+          <Link href="/cart" className="relative group">
+            <FaShoppingBag className="w-5 h-5 group-hover:scale-110 transition" />
+            <span className="absolute -top-2 -right-2 bg-white text-black text-[10px] px-1.5 py-[1px] rounded-full">
               2
             </span>
           </Link>
 
-          {/* Login Button */}
+          {/* Button */}
           <Link href="/login">
-            <button className="border border-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition">
+            <button className="bg-white text-black px-5 py-2 rounded-full hover:scale-105 transition-all duration-300">
               Login
             </button>
           </Link>
 
         </div>
 
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <FiX /> : <FiMenu />}
+        </button>
+
       </div>
 
+      {/* Mobile Menu */}
+      {open && (
+        <div className="md:hidden px-6 pb-6 flex flex-col gap-4 bg-black/90 backdrop-blur-md">
+
+          <Link href="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link href="/products" onClick={() => setOpen(false)}>Shop</Link>
+          <Link href="#" onClick={() => setOpen(false)}>New</Link>
+          <Link href="/cart" onClick={() => setOpen(false)}>Cart</Link>
+
+          <Link href="/login">
+            <button className="bg-white text-black px-5 py-2 rounded-full mt-2">
+              Login
+            </button>
+          </Link>
+
+        </div>
+      )}
     </nav>
   );
 }

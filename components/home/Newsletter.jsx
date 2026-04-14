@@ -1,36 +1,67 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export default function Newsletter() {
+  return (
+    <section className="bg-black text-white py-24 px-6">
 
-return (
+      <div className="max-w-4xl mx-auto text-center">
 
-<section className="bg-black text-white py-20 px-6">
+        {/* Heading */}
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-3xl md:text-5xl font-bold tracking-tight"
+        >
+          Join Our Newsletter
+        </motion.h2>
 
-  <div className="max-w-3xl mx-auto text-center">
+        {/* Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-gray-400 mt-4 text-lg"
+        >
+          Get exclusive deals, new arrivals & special offers
+        </motion.p>
 
-    <h2 className="text-4xl font-bold">
-      Subscribe to our Newsletter
-    </h2>
+        {/* Input + Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-10 flex flex-col md:flex-row items-center justify-center gap-4"
+        >
 
-    <p className="text-gray-400 mt-4">
-      Get updates about new collections and exclusive offers
-    </p>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full md:w-[380px] px-5 py-3 rounded-full 
+            bg-neutral-900 border border-white/20 
+            focus:outline-none focus:border-white 
+            transition"
+          />
 
-    <div className="flex flex-col md:flex-row justify-center mt-8 gap-3">
+          <button className="px-8 py-3 rounded-full font-medium 
+          bg-white text-black 
+          hover:bg-black hover:text-white border border-white 
+          transition-all duration-300 hover:scale-105">
+            Subscribe
+          </button>
 
-      <input
-        type="email"
-        placeholder="Enter your email"
-        className="w-full md:w-96 px-4 py-3 rounded-lg bg-neutral-900 border border-gray-700 focus:outline-none focus:border-white"
-      />
+        </motion.div>
 
-      <button className="px-6 py-3 border border-white rounded-lg hover:bg-white hover:text-black transition">
-        Subscribe
-      </button>
+        {/* Optional small note */}
+        <p className="text-xs text-gray-500 mt-4">
+          No spam. Only good stuff.
+        </p>
 
-    </div>
+      </div>
 
-  </div>
-
-</section>
-
-);
+    </section>
+  );
 }

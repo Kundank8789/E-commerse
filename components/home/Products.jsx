@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingCart, Eye, Star } from "lucide-react";
+import { FaHeart, FaShoppingCart, FaEye, FaStar } from "react-icons/fa";
 
 export default function Products() {
 
@@ -52,7 +52,8 @@ export default function Products() {
 
           <div
             key={product.id}
-            className="bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl hover:scale-105 transition relative"
+            className="bg-gray-900 rounded-xl overflow-hidden 
+            hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 relative group"
           >
 
             {/* Discount Badge */}
@@ -61,8 +62,8 @@ export default function Products() {
             </span>
 
             {/* Wishlist */}
-            <button className="absolute top-3 right-3 bg-black p-2 rounded-full hover:text-red-500">
-              <Heart size={18}/>
+            <button className="absolute top-3 right-3 bg-black/70 backdrop-blur p-2 rounded-full hover:text-red-500 transition">
+              <FaHeart size={16}/>
             </button>
 
             <Link href={`/products/${product.id}`}>
@@ -71,7 +72,7 @@ export default function Products() {
                 alt={product.name}
                 width={400}
                 height={250}
-                className="w-full h-48 object-cover"
+                className="w-full h-48 object-cover group-hover:scale-110 transition duration-500"
               />
             </Link>
 
@@ -84,7 +85,7 @@ export default function Products() {
               {/* Rating */}
               <div className="flex gap-1 mt-1">
                 {[...Array(product.rating)].map((_, i) => (
-                  <Star key={i} size={16} fill="yellow" stroke="yellow"/>
+                  <FaStar key={i} className="text-yellow-400 text-sm" />
                 ))}
               </div>
 
@@ -101,13 +102,14 @@ export default function Products() {
               {/* Buttons */}
               <div className="flex gap-2 mt-4">
 
-                <button className="flex-1 bg-blue-600 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
-                  <ShoppingCart size={18}/>
+                <button className="flex-1 bg-white text-black py-2 rounded-lg 
+                hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm font-medium">
+                  <FaShoppingCart size={16}/>
                   Cart
                 </button>
 
-                <button className="bg-gray-800 px-3 rounded-lg hover:bg-gray-700">
-                  <Eye size={18}/>
+                <button className="bg-gray-800 px-3 rounded-lg hover:bg-gray-700 transition">
+                  <FaEye size={16}/>
                 </button>
 
               </div>

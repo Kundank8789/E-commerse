@@ -1,58 +1,63 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function Categories() {
-
   const categories = [
-    {
-      name: "Electronics",
-      image: "/headphone.jpg"
-    },
-    {
-      name: "Fashion",
-      image: "/watch.jpg"
-    },
-    {
-      name: "Shoes",
-      image: "/shoes.jpg"
-    },
-    {
-      name: "Accessories",
-      image: "/Accessories.jpg"
-    }
+    { name: "Electronics", image: "/headphone.jpg" },
+    { name: "Fashion", image: "/watch.jpg" },
+    { name: "Shoes", image: "/shoes.jpg" },
+    { name: "Accessories", image: "/Accessories.jpg" }
   ];
 
   return (
-    <section className="bg-black text-white py-16">
+    <section className="bg-black text-white py-20">
 
-      <h2 className="text-3xl text-center font-bold mb-12">
-        Shop by Category
-      </h2>
+      {/* Heading */}
+      <div className="max-w-7xl mx-auto px-6 mb-14">
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center">
+          Shop by Category
+        </h2>
+      </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6">
+      {/* Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 px-6">
 
         {categories.map((cat, index) => (
-          <div
+          <motion.div
             key={index}
-            className="bg-gray-900 rounded-xl overflow-hidden hover:scale-105 transition cursor-pointer"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            viewport={{ once: true }}
+            className="relative group overflow-hidden rounded-2xl cursor-pointer"
           >
 
+            {/* Image */}
             <Image
               src={cat.image}
               alt={cat.name}
-              width={400}
-              height={250}
-              className="w-full h-40 object-cover"
+              width={500}
+              height={500}
+              className="w-full h-[220px] md:h-[260px] object-cover 
+              group-hover:scale-110 transition duration-500"
             />
 
-            <div className="p-4 text-center font-semibold">
-              {cat.name}
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition" />
+
+            {/* Text */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <h3 className="text-lg md:text-xl font-semibold tracking-wide group-hover:scale-110 transition">
+                {cat.name}
+              </h3>
             </div>
 
-          </div>
+          </motion.div>
         ))}
 
       </div>
-
     </section>
   );
 }
