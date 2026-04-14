@@ -11,7 +11,7 @@ export default function Footer() {
 
         {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold tracking-widest">ZIVA</h2>
+          <h2 className="text-2xl font-bold tracking-widest">MY STORE</h2>
           <p className="text-gray-400 mt-4 text-sm leading-relaxed">
             Premium fashion for modern lifestyle. Designed for comfort and style.
           </p>
@@ -71,7 +71,7 @@ export default function Footer() {
 
       {/* Bottom */}
       <div className="mt-14 pt-6 border-t border-white/10 text-center text-gray-500 text-xs">
-        © 2026 ZIVA. All rights reserved.
+        © 2026 MY STORE. All rights reserved.
       </div>
 
     </footer>
