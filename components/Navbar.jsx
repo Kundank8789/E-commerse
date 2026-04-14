@@ -2,37 +2,56 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="bg-black text-white px-8 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+    <nav className="bg-black text-white px-6 py-4 shadow-md sticky top-0 z-50">
 
-      {/* Logo */}
-      <Link href="/">
-        <h1 className="text-2xl font-bold cursor-pointer">
-          MyStore
-        </h1>
-      </Link>
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
 
-      {/* Menu */}
-      <div className="flex items-center gap-8">
-
-        <Link href="/" className="hover:text-blue-500 transition">
-          Home
+        {/* Logo */}
+        <Link href="/">
+          <h1 className="text-2xl font-bold tracking-wide hover:text-gray-300 transition">
+            MyStore
+          </h1>
         </Link>
 
-        <Link href="/products" className="hover:text-blue-500 transition">
-          Products
-        </Link>
+        {/* Menu */}
+        <div className="hidden md:flex items-center gap-8">
 
-        <Link href="/cart" className="hover:text-blue-500 transition">
-          🛒 Cart
-        </Link>
+          <Link
+            href="/"
+            className="hover:text-gray-300 transition relative after:block after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
+          >
+            Home
+          </Link>
 
-        <Link href="/login">
-          <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition">
-            Login
-          </button>
-        </Link>
+          <Link
+            href="/products"
+            className="hover:text-gray-300 transition relative after:block after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:origin-left"
+          >
+            Products
+          </Link>
+
+          {/* Cart */}
+          <Link
+            href="/cart"
+            className="relative hover:text-gray-300 transition"
+          >
+            🛒 Cart
+            <span className="absolute -top-2 -right-3 bg-red-500 text-xs px-2 rounded-full">
+              2
+            </span>
+          </Link>
+
+          {/* Login Button */}
+          <Link href="/login">
+            <button className="border border-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition">
+              Login
+            </button>
+          </Link>
+
+        </div>
 
       </div>
+
     </nav>
   );
 }

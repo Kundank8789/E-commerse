@@ -1,32 +1,36 @@
-export default function Newsletter(){
+export default function Newsletter() {
 
-return(
+return (
 
-<section className="text-center py-20">
+<section className="bg-black text-white py-20 px-6">
 
-<h2 className="text-3xl font-bold">
-Subscribe to our newsletter
-</h2>
+  <div className="max-w-3xl mx-auto text-center">
 
-<p className="text-gray-500 mt-2">
-Get updates about new collections
-</p>
+    <h2 className="text-4xl font-bold">
+      Subscribe to our Newsletter
+    </h2>
 
-<div className="flex justify-center mt-6">
+    <p className="text-gray-400 mt-4">
+      Get updates about new collections and exclusive offers
+    </p>
 
-<input
-className="border p-3 w-80"
-placeholder="Enter your email"
-/>
+    <div className="flex flex-col md:flex-row justify-center mt-8 gap-3">
 
-<button className="bg-black text-white px-6">
-Subscribe
-</button>
+      <input
+        type="email"
+        placeholder="Enter your email"
+        className="w-full md:w-96 px-4 py-3 rounded-lg bg-neutral-900 border border-gray-700 focus:outline-none focus:border-white"
+      />
 
-</div>
+      <button className="px-6 py-3 border border-white rounded-lg hover:bg-white hover:text-black transition">
+        Subscribe
+      </button>
+
+    </div>
+
+  </div>
 
 </section>
 
-)
-
+);
 }

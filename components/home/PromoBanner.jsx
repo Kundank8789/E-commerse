@@ -1,23 +1,40 @@
-export default function PromoBanner(){
+import Image from "next/image";
 
-return(
+export default function PromoBanner() {
 
-<section className="bg-black text-white text-center py-20 rounded-xl">
+  return (
 
-<h2 className="text-4xl font-bold">
-Summer Sale
-</h2>
+    <section className="relative py-24 px-6 rounded-xl overflow-hidden">
 
-<p className="mt-4">
-Up to 50% Off
-</p>
+      {/* Background Image */}
+      <Image
+        src="/sale-banner.jpg"
+        alt="Sale Banner"
+        fill
+        className="object-cover"
+      />
 
-<button className="mt-6 bg-white text-black px-6 py-3">
-Shop Now
-</button>
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/70"></div>
 
-</section>
+      {/* Content */}
+      <div className="relative max-w-4xl mx-auto text-center text-white">
 
-)
+        <h2 className="text-4xl md:text-5xl font-bold">
+          Summer Sale
+        </h2>
 
+        <p className="mt-4 text-lg text-gray-300">
+          Up to 50% Off on Selected Items
+        </p>
+
+        <button className="mt-8 px-8 py-3 border border-white rounded-lg hover:bg-white hover:text-black transition">
+          Shop Now
+        </button>
+
+      </div>
+
+    </section>
+
+  );
 }

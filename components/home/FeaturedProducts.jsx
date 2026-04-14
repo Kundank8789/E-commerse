@@ -7,7 +7,7 @@ const products = [
 id: 1,
 name: "Classic Jacket",
 price: 4999,
-image: "/.jpg",
+image: "/jacket.jpg",
 tag: "FEATURED",
 },
 {
