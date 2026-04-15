@@ -14,13 +14,22 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-6 space-y-24">
 
-        <Hero />
+        {/* ✅ Home Section */}
+        <section id="home">
+          <Hero />
+        </section>
 
         <Categories />
 
-        <NewArrivals />
+        {/* ✅ New Section */}
+        <section id="new">
+          <NewArrivals />
+        </section>
 
-        <FeaturedProducts />
+        {/* ✅ Products Section */}
+        <section id="products">
+          <FeaturedProducts />
+        </section>
 
         <PromoBanner />
 
