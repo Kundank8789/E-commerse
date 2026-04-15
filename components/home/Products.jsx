@@ -40,7 +40,7 @@ export default function Products() {
   ];
 
   return (
-    <section className="bg-black text-white py-20">
+    <section className="bg-black text-white py-16">
 
       <h2 className="text-4xl text-center font-bold mb-14">
         Featured Products

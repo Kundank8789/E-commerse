@@ -12,10 +12,10 @@ export default function Categories() {
   ];
 
   return (
-    <section className="bg-black text-white py-20">
+    <section className="bg-black text-white py-16">
 
       {/* Heading */}
-      <div className="max-w-7xl mx-auto px-6 mb-14">
+      <div className="max-w-7xl mx-auto px-6 mb-8">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center">
           Shop by Category
         </h2>

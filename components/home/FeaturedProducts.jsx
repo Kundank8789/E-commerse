@@ -22,17 +22,17 @@ export default function FeaturedProducts() {
   ];
 
   return (
-    <section className="py-24 bg-black text-white">
+    <section className="py-16 bg-black text-white">
 
       {/* Heading */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-16">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-8">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
           Featured Products
         </h2>
       </div>
 
       {/* Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 px-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 px-6">
 
         {products.map((product, index) => (
           <motion.div

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Newsletter() {
   return (
-    <section className="bg-black text-white py-24 px-6">
+    <section className="bg-black text-white py-16 px-6">
 
       <div className="max-w-4xl mx-auto text-center">
 

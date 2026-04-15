@@ -16,10 +16,10 @@ export default function NewArrivals() {
   ];
 
   return (
-    <section className="py-20 bg-black text-white">
+    <section className="py-16 bg-black text-white">
 
       {/* Heading */}
-      <div className="max-w-7xl mx-auto px-6 mb-14 text-center">
+      <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
           New Arrivals
         </h2>
