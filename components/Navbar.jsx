@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaShoppingBag } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
+import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+
+  const { cart } = useCart();
+
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md bg-black/70 border-b border-white/10">
@@ -35,12 +40,16 @@ export default function Navbar() {
             New
           </Link>
 
-          {/* Cart */}
+          {/* 🛒 Cart */}
           <Link href="/cart" className="relative group">
             <FaShoppingBag className="w-5 h-5 group-hover:scale-110 transition" />
-            <span className="absolute -top-2 -right-2 bg-white text-black text-[10px] px-1.5 py-[1px] rounded-full">
-              2
-            </span>
+
+            {/* ✅ Dynamic badge */}
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-white text-red-500 text-[12px] w-5 h-5 flex items-center justify-center rounded-full">
+                {totalItems}
+              </span>
+            )}
           </Link>
 
           {/* Button */}

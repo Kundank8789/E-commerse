@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { FaHeart, FaShoppingCart, FaEye, FaStar } from "react-icons/fa";
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
 
 export default function Products() {
+
+  const { addToCart } = useCart();
 
   const products = [
     {
@@ -63,7 +69,7 @@ export default function Products() {
 
             {/* Wishlist */}
             <button className="absolute top-3 right-3 bg-black/70 backdrop-blur p-2 rounded-full hover:text-red-500 transition">
-              <FaHeart size={16}/>
+              <FaHeart size={16} />
             </button>
 
             <Link href={`/products/${product.id}`}>
@@ -102,14 +108,20 @@ export default function Products() {
               {/* Buttons */}
               <div className="flex gap-2 mt-4">
 
-                <button className="flex-1 bg-white text-black py-2 rounded-lg 
-                hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm font-medium">
-                  <FaShoppingCart size={16}/>
-                  Cart
+                <button
+                  onClick={() => {
+                    addToCart(product)
+                    toast.success(`${product.name} added to cart 🛒`);
+                  }}
+                  className="flex-1 bg-white text-black py-2 rounded-lg 
+                  hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm font-medium"
+                >
+                  <FaShoppingCart size={16} />
+                  Add
                 </button>
 
                 <button className="bg-gray-800 px-3 rounded-lg hover:bg-gray-700 transition">
-                  <FaEye size={16}/>
+                  <FaEye size={16} />
                 </button>
 
               </div>

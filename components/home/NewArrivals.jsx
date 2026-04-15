@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useCart } from "../../context/CartContext";
 
 export default function NewArrivals() {
+  const { addToCart } = useCart();
   const products = [
     { id: 1, name: "Nike Shoes", price: 3999, image: "/shoes.jpg", tag: "NEW" },
     { id: 2, name: "T-Shirt", price: 999, image: "/tshirt.jpg", tag: "TRENDING" },
@@ -72,7 +74,9 @@ export default function NewArrivals() {
               </p>
 
               {/* Add to Cart */}
-              <button className="mt-4 w-full bg-white text-black py-2 rounded-full font-medium 
+              <button
+                onClick={() => addToCart(product)}
+                className="mt-4 w-full bg-white text-black py-2 rounded-full font-medium 
               hover:bg-black hover:text-white border border-white 
               transition-all duration-300">
                 Add to Cart
