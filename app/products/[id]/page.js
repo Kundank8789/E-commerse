@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { Star, ShoppingCart  } from "lucide-react";
+import { FaStar, FaShoppingCart } from "react-icons/fa";
 
 export default function ProductDetails() {
 
@@ -74,7 +74,7 @@ export default function ProductDetails() {
 
           <div className="flex gap-1 mb-4">
             {[...Array(product.rating)].map((_, i) => (
-              <Star key={i} size={18} fill="yellow" stroke="yellow" />
+              <FaStar key={i} size={18} color="yellow" />
             ))}
           </div>
 
@@ -121,7 +121,7 @@ export default function ProductDetails() {
               }
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
             >
-                <ShoppingCart size={18} />
+                <FaShoppingCart size={18} />
               Add to Cart
             </button>
 
