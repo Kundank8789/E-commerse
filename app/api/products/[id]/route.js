@@ -2,10 +2,10 @@ import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
 // ✅ GET SINGLE PRODUCT
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   await connectDB();
 
-  const { id } = params;
+  const { id } = await context.params; // ✅ FIXED
 
   const product = await Product.findById(id);
 
@@ -20,7 +20,7 @@ export async function GET(req, { params }) {
 }
 
 // ✅ DELETE PRODUCT
-export async function DELETE(req,context) {
+export async function DELETE(req, context) {
   await connectDB();
 
   const { id } = await context.params;
