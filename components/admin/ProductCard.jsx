@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 
 export default function ProductCard({ product, handleEdit, handleDelete }) {
+
+  // ✅ Safe image handling (old + new data support)
   const images =
     product?.images?.length > 0
       ? product.images
@@ -13,11 +15,14 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
 
   const [index, setIndex] = useState(0);
 
+  // ✅ Prevent crash if no images
   const next = () => {
+    if (images.length === 0) return;
     setIndex((prev) => (prev + 1) % images.length);
   };
 
   const prev = () => {
+    if (images.length === 0) return;
     setIndex((prev) =>
       prev === 0 ? images.length - 1 : prev - 1
     );
@@ -47,6 +52,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
         {/* LEFT BUTTON */}
         {images.length > 1 && (
           <button
+            type="button"
             onClick={prev}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 px-2 py-1 rounded-full text-white text-xs hover:bg-black"
           >
@@ -57,6 +63,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
         {/* RIGHT BUTTON */}
         {images.length > 1 && (
           <button
+            type="button"
             onClick={next}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 px-2 py-1 rounded-full text-white text-xs hover:bg-black"
           >
@@ -84,6 +91,11 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
         {product?.name}
       </h3>
 
+      {/* ✅ CATEGORY NAME */}
+      <p className="text-xs text-blue-400">
+        {product?.category?.name || "No Category"}
+      </p>
+
       <p className="text-gray-400 text-sm mb-2">
         ₹{product?.price}
       </p>
@@ -92,6 +104,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
       <div className="flex gap-2 mt-3 opacity-80 group-hover:opacity-100 transition">
 
         <button
+          type="button"
           onClick={() => handleEdit(product)}
           className="flex-1 bg-yellow-500 py-2 rounded-lg text-sm 
           hover:bg-yellow-600 hover:scale-[1.03] transition"
@@ -100,6 +113,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
         </button>
 
         <button
+          type="button"
           onClick={() => handleDelete(product?._id)}
           className="flex-1 bg-red-500 py-2 rounded-lg text-sm 
           hover:bg-red-600 hover:scale-[1.03] transition"

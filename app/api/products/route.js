@@ -7,7 +7,9 @@ export async function GET() {
   try {
     await connectDB();
 
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find()
+      .populate("category") // ✅ correct
+      .sort({ createdAt: -1 });
 
     return NextResponse.json(products);
   } catch (error) {
@@ -20,17 +22,17 @@ export async function GET() {
   }
 }
 
-// ✅ CREATE PRODUCT (MULTIPLE IMAGES)
+// ✅ CREATE PRODUCT (WITH CATEGORY)
 export async function POST(req) {
   try {
     await connectDB();
 
-    const { name, price, images, description } = await req.json();
+    const { name, price, images, description, category } = await req.json();
 
     // 🔥 validation
-    if (!name || !price || !images || images.length === 0) {
+    if (!name || !price || !images || images.length === 0 || !category) {
       return NextResponse.json(
-        { error: "All fields including images are required" },
+        { error: "All fields including category are required" },
         { status: 400 }
       );
     }
@@ -38,8 +40,9 @@ export async function POST(req) {
     const product = await Product.create({
       name,
       price,
-      images, // ✅ array
+      images,
       description,
+      category, // ✅ IMPORTANT
     });
 
     return NextResponse.json(product, { status: 201 });

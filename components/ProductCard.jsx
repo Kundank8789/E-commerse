@@ -17,16 +17,36 @@ export default function ProductCard({ product }) {
           src={imageSrc}
           alt={product.name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover group-hover:scale-110 transition duration-500"
         />
+
+        {/* 🔥 CATEGORY BADGE */}
+        {product?.category?.name && (
+          <span className="absolute top-2 left-2 bg-black/70 text-xs px-2 py-1 rounded">
+            {product.category.name}
+          </span>
+        )}
       </div>
 
       {/* Info */}
-      <h2 className="text-lg font-semibold">{product.name}</h2>
-      <p className="text-gray-400 text-sm">₹{product.price}</p>
+      <h2 className="text-lg font-semibold line-clamp-1">
+        {product.name}
+      </h2>
+
+      <p className="text-gray-400 text-sm mb-2">
+        ₹{product.price}
+      </p>
+
+      {/* 🔥 OPTIONAL DESCRIPTION */}
+      {product?.description && (
+        <p className="text-xs text-gray-500 line-clamp-2 mb-3">
+          {product.description}
+        </p>
+      )}
 
       {/* Button */}
-      <button className="mt-3 w-full bg-white text-black py-2 rounded-lg text-sm font-medium hover:bg-gray-200">
+      <button className="mt-auto w-full bg-white text-black py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
         Add to Cart
       </button>
     </div>

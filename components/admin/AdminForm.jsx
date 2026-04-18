@@ -12,6 +12,7 @@ export default function AdminForm({
   uploading,
   uploadProgress,
   handleRemoveImage,
+  categories,
 }) {
   return (
     <form
@@ -24,7 +25,7 @@ export default function AdminForm({
         placeholder="Product Name"
         value={form.name}
         onChange={handleChange}
-        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg"
+        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400"
         required
       />
 
@@ -35,11 +36,29 @@ export default function AdminForm({
         placeholder="Price"
         value={form.price}
         onChange={handleChange}
-        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg"
+        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400"
         required
       />
 
-      {/* 🔥 DRAG & DROP MULTIPLE UPLOAD */}
+      {/* Category Dropdown */}
+      <select
+        name="category"
+        value={form.category || ""}
+        onChange={handleChange}
+        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white"
+      >
+        <option value="" className="bg-black">
+          Select Category
+        </option>
+
+        {categories?.map((c) => (
+          <option key={c._id} value={c._id} className="bg-black">
+            {c.name}
+          </option>
+        ))}
+      </select>
+
+      {/* Drag & Drop Multiple Upload */}
       <div
         onDrop={(e) => {
           e.preventDefault();
@@ -90,14 +109,11 @@ export default function AdminForm({
         </p>
       )}
 
-      {/* 🔥 MULTIPLE IMAGE PREVIEW */}
+      {/* Multiple Image Preview */}
       <div className="flex gap-3 flex-wrap mt-2">
         {form.images?.map((img, index) =>
           img ? (
-            <div
-              key={index}
-              className="relative w-24 h-24 group"
-            >
+            <div key={index} className="relative w-24 h-24 group">
               <Image
                 src={img}
                 alt="preview"
@@ -105,8 +121,7 @@ export default function AdminForm({
                 sizes="100px"
                 className="object-cover rounded-lg border border-white/10"
               />
-
-              {/* ❌ Remove Button */}
+              {/* Remove Button */}
               <button
                 type="button"
                 onClick={() => handleRemoveImage(index)}
@@ -126,11 +141,13 @@ export default function AdminForm({
         placeholder="Description"
         value={form.description}
         onChange={handleChange}
-        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg"
+        rows={4}
+        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400"
       />
 
       {/* Submit Button */}
       <button
+        type="submit"
         disabled={uploading || loading}
         className="w-full bg-white text-black py-3 rounded-full font-semibold 
         hover:scale-[1.02] transition disabled:opacity-50"
@@ -138,12 +155,12 @@ export default function AdminForm({
         {uploading
           ? `Uploading ${uploadProgress}%`
           : loading
-          ? editId
-            ? "Updating..."
-            : "Adding..."
-          : editId
-          ? "Update Product"
-          : "Add Product"}
+            ? editId
+              ? "Updating..."
+              : "Adding..."
+            : editId
+              ? "Update Product"
+              : "Add Product"}
       </button>
     </form>
   );
