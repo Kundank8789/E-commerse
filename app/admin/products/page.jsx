@@ -1,205 +1,98 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AdminForm from "@/components/admin/AdminForm";
-import ProductCard from "@/components/admin/ProductCard";
+import Link from "next/link";
+import Image from "next/image";
 
-export default function ProductsPage() {
+export default function AdminProducts() {
     const [products, setProducts] = useState([]);
 
-    // ✅ NEW STATES
-    const [categories, setCategories] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState("");
-
-    const [form, setForm] = useState({
-        name: "",
-        price: "",
-        images: [],
-        description: "",
-        category: "",
-    });
-
-    const [uploading, setUploading] = useState(false);
-    const [editId, setEditId] = useState(null);
-
-    const cloudName = "dop9yznsl";
-    const uploadPreset = "ml_default";
-
-    // 🔥 FETCH PRODUCTS
-    const fetchProducts = async () => {
-        const res = await fetch("/api/products");
-        const data = await res.json();
-        setProducts(Array.isArray(data) ? data : []);
-    };
-
-    // 🔥 FETCH CATEGORIES
-    const fetchCategories = async () => {
-        const res = await fetch("/api/categories");
-        const data = await res.json();
-        setCategories(data);
-    };
-
-    // ✅ USE EFFECT
     useEffect(() => {
-        fetchProducts();
-        fetchCategories(); // ✅ ADDED
+        fetch("/api/products")
+            .then(res => res.json())
+            .then(data => setProducts(data));
     }, []);
 
-    // 🔥 DELETE
-    const handleDelete = async (id) => {
-        await fetch(`/api/products/${id}`, {
-            method: "DELETE",
-        });
-        fetchProducts();
+    const deleteProduct = async (id) => {
+        if (!confirm("Delete this product?")) return;
+
+        await fetch(`/api/products/${id}`, { method: "DELETE" });
+
+        setProducts(prev => prev.filter(p => p._id !== id));
     };
 
-    // 🔥 EDIT
-    const handleEdit = (product) => {
-        setForm({
-            name: product.name,
-            price: product.price,
-            images: product.images || [],
-            description: product.description,
-            category: product.category?._id || product.category || "",
-        });
-
-        setEditId(product._id);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    // 🔥 IMAGE UPLOAD
-    const handleImageUpload = (files) => {
-        const fileArray = Array.from(files);
-        setUploading(true);
-
-        fileArray.forEach((file) => {
-            const data = new FormData();
-            data.append("file", file);
-            data.append("upload_preset", uploadPreset);
-
-            fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                method: "POST",
-                body: data,
-            })
-                .then((res) => res.json())
-                .then((res) => {
-                    if (res.secure_url) {
-                        setForm((prev) => ({
-                            ...prev,
-                            images: [...prev.images, res.secure_url],
-                        }));
-                    }
-                })
-                .finally(() => {
-                    setUploading(false);
-                });
-        });
-    };
-
-    // 🔥 REMOVE IMAGE
-    const handleRemoveImage = (index) => {
-        setForm((prev) => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index),
-        }));
-    };
-
-    // 🔥 SUBMIT
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const url = editId
-            ? `/api/products/${editId}`
-            : "/api/products";
-
-        const method = editId ? "PUT" : "POST";
-
-        await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                ...form,
-                price: Number(form.price),
-                category: form.category,
-            }),
-        });
-
-        // reset
-        setForm({
-            name: "",
-            price: "",
-            images: [],
-            description: "",
-            category: "",
-        });
-
-        setEditId(null);
-        fetchProducts();
-    };
-
-    // 🔥 INPUT CHANGE
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        });
+    const getStockStatus = (p) => {
+        if (p.stock === 0) return "❌ Out of Stock";
+        if (p.stock < p.lowStockThreshold) return "⚠️ Low Stock";
+        return "✅ In Stock";
     };
 
     return (
-        <div>
-            <h1 className="text-2xl mb-6">Product Management</h1>
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">All Products</h1>
 
-            {/* ✅ CATEGORY FILTER DROPDOWN */}
-            <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="mb-4 p-2 bg-black border text-white"
-            >
-                <option value="">All Categories</option>
+            <Link href="/admin/products/new">
+                <button className="mb-4 bg-black text-white px-4 py-2">
+                    + Add Product
+                </button>
+            </Link>
 
-                {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                        {c.name}
-                    </option>
-                ))}
-            </select>
+            <table className="w-full border">
+                <thead>
+                    <tr className="bg-gray-200">
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
 
-            {/* FORM */}
-            <AdminForm
-                form={form}
-                setForm={setForm}
-                handleChange={handleChange}
-                handleSubmit={handleSubmit}
-                editId={editId}
-                handleImageUpload={handleImageUpload}
-                uploading={uploading}
-                handleRemoveImage={handleRemoveImage}
-                categories={categories}   // ✅ ADD THIS
-            />
+                <tbody>
+                    {products.map(p => (
+                        <tr key={p._id} className="border-t text-center">
+                            {/* ✅ IMAGE COLUMN */}
+                            <td>
+                                <div className="relative w-12 h-12 mx-auto">
+                                    {p.images?.[0] && typeof p.images[0] === "string" ? (
+                                        <Image
+                                            src={p.images[0]}
+                                            alt={p.name || "product"}
+                                            fill
+                                            className="object-cover rounded"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center w-12 h-12 bg-gray-200 text-xs rounded">
+                                            No Img
+                                        </div>
+                                    )}
+                                    
+                                </div>
+                            </td>
+                            <td>{p.name}</td>
+                            <td>₹{p.price}</td>
+                            <td>{p.stock}</td>
+                            <td>{getStockStatus(p)}</td>
 
-            {/* PRODUCT LIST */}
-            <div className="grid md:grid-cols-3 gap-6 mt-10">
-                {products
-                    .filter((p) => {
-                        if (!selectedCategory) return true;
+                            <td className="space-x-2">
+                                <Link href={`/admin/products/edit/${p._id}`}>
+                                    <button className="bg-blue-500 text-white px-2 py-1">
+                                        Edit
+                                    </button>
+                                </Link>
 
-                        return (
-                            p.category?._id === selectedCategory ||
-                            p.category === selectedCategory ||
-                            !p.category
-                        );
-                    })
-                    .map((p) => (
-                        <ProductCard
-                            key={p._id}
-                            product={p}
-                            handleEdit={handleEdit}
-                            handleDelete={handleDelete}
-                        />
+                                <button
+                                    onClick={() => deleteProduct(p._id)}
+                                    className="bg-red-500 text-white px-2 py-1"
+                                >
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
                     ))}
-            </div>
+                </tbody>
+            </table>
         </div>
     );
 }

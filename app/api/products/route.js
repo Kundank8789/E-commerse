@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "../../../lib/mongodb";
-import Product from "../../../models/Product";
+import { connectDB } from "@/lib/mongodb";
+import Product from "@/models/Product";
+import "@/models/Category"; // ✅ ADD THIS LINE
 
-// ✅ GET ALL PRODUCTS
 export async function GET() {
   try {
     await connectDB();
 
     const products = await Product.find()
-      .populate("category") // ✅ correct
+      .populate("categories")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(products);
+
   } catch (error) {
     console.error("GET ERROR:", error);
-
     return NextResponse.json(
       { error: "Failed to fetch products" },
       { status: 500 }
@@ -22,36 +22,32 @@ export async function GET() {
   }
 }
 
-// ✅ CREATE PRODUCT (WITH CATEGORY)
 export async function POST(req) {
   try {
     await connectDB();
 
-    const { name, price, images, description, category } = await req.json();
+    const body = await req.json();
 
-    // 🔥 validation
-    if (!name || !price || !images || images.length === 0 || !category) {
+    if (!body.name || !body.price) {
       return NextResponse.json(
-        { error: "All fields including category are required" },
+        { error: "Name and price required" },
         { status: 400 }
       );
     }
 
     const product = await Product.create({
-      name,
-      price,
-      images,
-      description,
-      category, // ✅ IMPORTANT
+      ...body,
+      images: body.images || [],
+      categories: body.categories || [],
     });
 
-    return NextResponse.json(product, { status: 201 });
-  } catch (error) {
-    console.error("POST ERROR:", error);
+    return NextResponse.json({ success: true, product });
 
+  } catch (err) {
+    console.log(err);
     return NextResponse.json(
-      { error: "Failed to create product" },
-      { status: 500 }
+      { success: false, error: err.message },
+      { status: 400 }
     );
   }
 }

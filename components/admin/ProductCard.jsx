@@ -5,17 +5,16 @@ import Image from "next/image";
 
 export default function ProductCard({ product, handleEdit, handleDelete }) {
 
-  // ✅ Safe image handling (old + new data support)
+  // ✅ Handle old + new image formats
   const images =
     product?.images?.length > 0
       ? product.images
       : product?.image
-      ? [product.image]
-      : [];
+        ? [product.image]
+        : [];
 
   const [index, setIndex] = useState(0);
 
-  // ✅ Prevent crash if no images
   const next = () => {
     if (images.length === 0) return;
     setIndex((prev) => (prev + 1) % images.length);
@@ -32,7 +31,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
     <div className="group bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 
     transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl hover:border-white/20">
 
-      {/* 🔥 IMAGE SLIDER */}
+      {/* 🔥 IMAGE SECTION */}
       <div className="relative w-full h-40 mb-3 overflow-hidden rounded-lg">
 
         {images.length > 0 ? (
@@ -44,7 +43,7 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
             className="object-cover transition duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="flex items-center justify-center h-full bg-gray-800 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-full bg-gray-200 text-gray-500 text-sm">
             No Image
           </div>
         )}
@@ -71,18 +70,24 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
           </button>
         )}
 
-        {/* 🔥 DOTS */}
+        {/* DOTS */}
         {images.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
             {images.map((_, i) => (
               <div
                 key={i}
-                className={`w-2 h-2 rounded-full ${
-                  i === index ? "bg-white" : "bg-white/40"
-                }`}
+                className={`w-2 h-2 rounded-full ${i === index ? "bg-white" : "bg-white/40"
+                  }`}
               />
             ))}
           </div>
+        )}
+
+        {/* OPTIONAL LABEL */}
+        {images.length === 0 && (
+          <span className="absolute bottom-1 right-1 text-xs bg-black/60 px-1 rounded text-white">
+            No Image
+          </span>
         )}
       </div>
 
@@ -91,7 +96,6 @@ export default function ProductCard({ product, handleEdit, handleDelete }) {
         {product?.name}
       </h3>
 
-      {/* ✅ CATEGORY NAME */}
       <p className="text-xs text-blue-400">
         {product?.category?.name || "No Category"}
       </p>

@@ -2,79 +2,91 @@
 
 import { useEffect, useState } from "react";
 
-export default function CategoriesPage() {
+export default function CategoryPage() {
   const [name, setName] = useState("");
+  const [bulk, setBulk] = useState("");
   const [categories, setCategories] = useState([]);
 
-  const fetchCategories = async () => {
-    const res = await fetch("/api/categories");
-    const data = await res.json();
-    setCategories(data);
+  const fetchCategories = () => {
+    fetch("/api/categories")
+      .then(res => res.json())
+      .then(data => setCategories(data));
   };
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  const handleAdd = async (e) => {
-    e.preventDefault();
-
+  const addCategory = async () => {
     await fetch("/api/categories", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ name }),
     });
-
     setName("");
     fetchCategories();
   };
 
-  const handleDelete = async (id) => {
-    await fetch(`/api/categories/${id}`, {
-      method: "DELETE",
+  const bulkAdd = async () => {
+    const list = bulk.split(",").map(c => c.trim());
+
+    await fetch("/api/categories/bulk", {
+      method: "POST",
+      body: JSON.stringify(list),
     });
 
+    setBulk("");
+    fetchCategories();
+  };
+
+  const deleteCategory = async (id) => {
+    await fetch(`/api/categories/${id}`, { method: "DELETE" });
     fetchCategories();
   };
 
   return (
-    <div>
-      <h1 className="text-2xl mb-6">Categories</h1>
+    <div className="p-6">
+      <h1 className="text-xl font-bold mb-4">Categories</h1>
 
-      {/* ADD */}
-      <form onSubmit={handleAdd} className="mb-6">
+      {/* Single */}
+      <div className="mb-4">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Category name"
-          className="p-2 border mr-2"
+          placeholder="New Category"
+          className="border p-2"
         />
-
-        <button className="bg-blue-500 px-4 py-2">
+        <button onClick={addCategory} className="ml-2 bg-black text-white px-3 py-2">
           Add
         </button>
-      </form>
+      </div>
 
-      {/* LIST */}
-      <div className="space-y-2">
-        {categories.map((c) => (
-          <div
-            key={c._id}
-            className="flex justify-between bg-black p-3"
-          >
-            <p>{c.name}</p>
+      {/* Bulk */}
+      <div className="mb-6">
+        <input
+          value={bulk}
+          onChange={(e) => setBulk(e.target.value)}
+          placeholder="Bulk (Shoes, Clothes, Electronics)"
+          className="border p-2 w-80"
+        />
+        <button onClick={bulkAdd} className="ml-2 bg-blue-500 text-white px-3 py-2">
+          Bulk Add
+        </button>
+      </div>
 
+      {/* List */}
+      <ul>
+        {categories.map(cat => (
+          <li key={cat._id} className="flex justify-between border-b py-2">
+            {cat.name}
             <button
-              onClick={() => handleDelete(c._id)}
-              className="bg-red-500 px-2"
+              onClick={() => deleteCategory(cat._id)}
+              className="text-red-500"
             >
               Delete
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

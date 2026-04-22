@@ -11,30 +11,19 @@ export async function POST(req) {
     const formData = await req.formData();
     const file = formData.get("file");
 
-    // 🚨 IMPORTANT CHECK
     if (!file) {
       return Response.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Convert file → buffer
+    // 🔥 Convert file to base64 (more stable than stream)
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Cloudinary
-    const result = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "ecommerce" },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary Error:", error);
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        }
-      );
+    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-      stream.end(buffer);
+    // 🔥 Upload directly
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "ecommerce",
     });
 
     return Response.json({
@@ -42,7 +31,7 @@ export async function POST(req) {
     });
 
   } catch (error) {
-    console.error("UPLOAD FAILED:", error); // 👈 SEE ERROR IN TERMINAL
+    console.error("UPLOAD FAILED:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
