@@ -55,19 +55,28 @@ export default function AdminProducts() {
                             {/* ✅ IMAGE COLUMN */}
                             <td>
                                 <div className="relative w-12 h-12 mx-auto">
-                                    {p.images?.[0] && typeof p.images[0] === "string" ? (
-                                        <Image
-                                            src={p.images[0]}
-                                            alt={p.name || "product"}
-                                            fill
-                                            className="object-cover rounded"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center justify-center w-12 h-12 bg-gray-200 text-xs rounded">
-                                            No Img
-                                        </div>
-                                    )}
-                                    
+                                    {(() => {
+                                        const validImages = (p.images || []).filter(
+                                            img => typeof img === "string" && img.startsWith("http")
+                                        );
+
+                                        if (validImages.length > 0) {
+                                            return (
+                                                <Image
+                                                    src={validImages[0]}
+                                                    alt={p.name || "product"}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="flex items-center justify-center h-full bg-gray-200 text-sm">
+                                                No Image
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </td>
                             <td>{p.name}</td>

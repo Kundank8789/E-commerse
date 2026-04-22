@@ -23,6 +23,7 @@ export default function ProductForm() {
 
   const [categories, setCategories] = useState([]);
   const [message, setMessage] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -54,9 +55,11 @@ export default function ProductForm() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "ecommerce_upload"); // 👈 create this in cloudinary
+    formData.append("upload_preset", "ml_default"); // ✅ from your cloudinary
 
     try {
+      setUploading(true);
+
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
@@ -67,18 +70,24 @@ export default function ProductForm() {
 
       const data = await res.json();
 
-      console.log("UPLOAD URL:", data.secure_url);
+      console.log("UPLOAD RESPONSE:", data);
 
-      setProduct(prev => ({
-        ...prev,
-        images: [...(prev.images || []), data.secure_url],
-      }));
+      if (data?.secure_url && typeof data.secure_url === "string") {
+        setProduct(prev => ({
+          ...prev,
+          images: [...(prev.images || []), data.secure_url],
+        }));
+      } else {
+        console.error("❌ Upload failed:", data);
+      }
+
+      setUploading(false);
 
     } catch (err) {
       console.log("UPLOAD ERROR:", err);
+      setUploading(false);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -162,26 +171,29 @@ export default function ProductForm() {
 
       {/* Image Upload */}
       <input type="file" onChange={handleImageUpload} />
+      {uploading && <p className="text-blue-500">Uploading image...</p>}
 
       <div className="col-span-2 flex gap-2">
         {product.images
-        .filter(img=> img && img.trim() !== "")
-        .map((img, i) => (
-          <Image
-            key={i}
-            src={img}
-            alt={`${product?.name || "product"} image ${i + 1}`}
-            className="w-20 h-20 object-cover"
-            width={80}
-            height={80}
-          />
-        ))}
+          .filter(img => img && img.trim() !== "")
+          .map((img, i) => (
+            <Image
+              key={i}
+              src={img}
+              alt={`${product?.name || "product"} image ${i + 1}`}
+              className="w-20 h-20 object-cover"
+              width={80}
+              height={80}
+            />
+          ))}
       </div>
 
-      <button className="bg-black text-white py-2 col-span-2">
+      <button
+        disabled={uploading || product.images.length === 0}
+        className="bg-black text-white py-2 col-span-2 disabled:bg-gray-400"
+      >
         Create Product
       </button>
-
       {message && <p className="col-span-2">{message}</p>}
     </form>
   );
