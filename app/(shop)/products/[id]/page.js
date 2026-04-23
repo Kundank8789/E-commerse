@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useCart } from "../../../context/CartContext";
+import { useCart } from "../../../../context/CartContext";
 
 export default function ProductPage() {
   const { id } = useParams();
