@@ -1,39 +1,71 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
-  const addToCart = (product) => {
-    console.log("ADDING PRODUCT:", product);
+  // ✅ LOAD CART
+  useEffect(() => {
+    const stored = localStorage.getItem("cart");
+    if (stored) {
+      setCart(JSON.parse(stored));
+    }
+  }, []);
 
-    setCart((prevCart) => {
-      const exist = prevCart.find((item) => item.id === product.id);
+  // ✅ SAVE CART (FIXED)
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // ✅ ADD TO CART (FIXED - supports variants)
+  const addToCart = (product) => {
+    setCart((prev) => {
+      const exist = prev.find(
+        (item) =>
+          item._id === product._id &&
+          item.selectedSize === product.selectedSize &&
+          item.selectedColor === product.selectedColor
+      );
 
       if (exist) {
-        return prevCart.map((item) =>
-          item.id === product.id
+        return prev.map((item) =>
+          item._id === product._id &&
+          item.selectedSize === product.selectedSize &&
+          item.selectedColor === product.selectedColor
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
 
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  // ✅ REMOVE (FIXED)
+  const removeFromCart = (product) => {
+    setCart((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item._id === product._id &&
+            item.selectedSize === product.selectedSize &&
+            item.selectedColor === product.selectedColor
+          )
+      )
+    );
   };
 
-  const decreaseQty = (id) => {
+  // ✅ DECREASE (FIXED)
+  const decreaseQty = (product) => {
     setCart((prev) =>
       prev
         .map((item) =>
-          item.id === id
+          item._id === product._id &&
+          item.selectedSize === product.selectedSize &&
+          item.selectedColor === product.selectedColor
             ? { ...item, quantity: item.quantity - 1 }
             : item
         )
@@ -41,9 +73,15 @@ export function CartProvider({ children }) {
     );
   };
 
+  // ✅ CLEAR
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("cart");
+  };
+
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, decreaseQty }}
+      value={{ cart, addToCart, removeFromCart, decreaseQty, clearCart }}
     >
       {children}
     </CartContext.Provider>

@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaTrash } from "react-icons/fa";
-import { useCart } from "../../context/CartContext";
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
 
 export default function CartPage() {
   const {
@@ -12,29 +13,27 @@ export default function CartPage() {
     removeFromCart,
     addToCart,
     decreaseQty,
-    clearCart, // ✅ added
+    clearCart,
   } = useCart();
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Correct totals
   const total = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
     0
   );
 
   const totalItems = cart.reduce(
-    (acc, item) => acc + item.quantity,
+    (acc, item) => acc + (item.quantity || 1),
     0
   );
 
-  // 🔥 PLACE ORDER
   const handlePlaceOrder = async () => {
     try {
       setLoading(true);
 
       const items = cart.map((item) => ({
-        product: item._id || item.id,
+        product: item._id,
         quantity: item.quantity,
       }));
 
@@ -43,25 +42,21 @@ export default function CartPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          items,
-          total,
-        }),
+        body: JSON.stringify({ items, total }),
       });
 
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Order failed");
 
-      // ✅ clear cart
-      clearCart();
+      toast.success("Order placed 🎉");
 
-      // ✅ redirect
+      clearCart();
       window.location.href = "/order-success";
 
     } catch (error) {
-      console.error("Order Error:", error);
-      alert("❌ Failed to place order");
+      console.error(error);
+      toast.error("❌ Order failed");
     } finally {
       setLoading(false);
     }
@@ -78,7 +73,7 @@ export default function CartPage() {
         <div className="text-center">
           <p className="text-gray-400">Your cart is empty</p>
           <Link
-            href="/"
+            href="/products"
             className="mt-4 inline-block bg-white text-black px-6 py-2 rounded-lg"
           >
             Continue Shopping
@@ -90,29 +85,37 @@ export default function CartPage() {
           {/* LEFT */}
           <div className="md:col-span-2 space-y-6">
 
-            {cart.map((item) => (
+            {cart.map((item, index) => (
               <div
-                key={item.id}
+                key={index}
                 className="flex gap-4 bg-gray-900 p-4 rounded-xl items-center"
               >
 
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  width={100}
-                  height={100}
-                  className="rounded-lg object-cover"
-                />
+                {/* IMAGE */}
+                {item.images?.[0] ? (
+                  <Image
+                    src={item.images[0]}
+                    alt={item.name}
+                    width={100}
+                    height={100}
+                    className="rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="w-[100px] h-[100px] bg-gray-700 flex items-center justify-center text-xs rounded-lg">
+                    No Image
+                  </div>
+                )}
 
+                {/* INFO */}
                 <div className="flex-1">
                   <h2 className="font-semibold">{item.name}</h2>
                   <p className="text-gray-400 text-sm">₹{item.price}</p>
 
-                  {/* Quantity */}
+                  {/* QUANTITY */}
                   <div className="flex items-center gap-3 mt-3">
 
                     <button
-                      onClick={() => decreaseQty(item.id)}
+                      onClick={() => decreaseQty(item)}
                       className="bg-gray-700 px-3 py-1 rounded"
                     >
                       -
@@ -121,7 +124,10 @@ export default function CartPage() {
                     <span>{item.quantity}</span>
 
                     <button
-                      onClick={() => addToCart(item)}
+                      onClick={() => {
+                        addToCart(item);
+                        toast.success("Quantity updated 🛒");
+                      }}
                       className="bg-gray-700 px-3 py-1 rounded"
                     >
                       +
@@ -130,9 +136,12 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Remove */}
+                {/* REMOVE */}
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => {
+                    removeFromCart(item);
+                    toast.success("Removed from cart");
+                  }}
                   className="text-red-500 hover:text-red-700"
                 >
                   <FaTrash />
@@ -163,7 +172,7 @@ export default function CartPage() {
             <button
               onClick={handlePlaceOrder}
               disabled={loading}
-              className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 transition disabled:opacity-50"
+              className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
             >
               {loading ? "Placing Order..." : "Checkout"}
             </button>

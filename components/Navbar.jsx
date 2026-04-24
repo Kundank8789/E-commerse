@@ -11,31 +11,37 @@ export default function Navbar() {
   const [active, setActive] = useState("home");
 
   const { cart } = useCart();
-  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // 🔥 Detect scroll position
+  const totalItems = cart.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
+
+  // 🔥 limit count display
+  const displayCount = totalItems > 99 ? "99+" : totalItems;
+
+  // 🔥 scroll detection
   useEffect(() => {
     const handleScroll = () => {
       const sections = ["home", "products", "new"];
 
-      sections.forEach((id) => {
+      for (let id of sections) {
         const section = document.getElementById(id);
-        if (!section) return;
+        if (!section) continue;
 
         const rect = section.getBoundingClientRect();
 
-        if (rect.top <= 100 && rect.bottom >= 100) {
+        if (rect.top <= 120 && rect.bottom >= 120) {
           setActive(id);
+          break;
         }
-      });
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🎨 Active style
   const linkStyle = (id) =>
     `relative group transition ${
       active === id ? "text-white" : "text-gray-400"
@@ -59,47 +65,32 @@ export default function Navbar() {
           {/* Home */}
           <a href="#home" className={linkStyle("home")}>
             Home
-            <span
-              className={`absolute left-0 -bottom-1 h-[2px] bg-white transition-all duration-300 ${
-                active === "home" ? "w-full" : "w-0 group-hover:w-full"
-              }`}
-            ></span>
           </a>
 
           {/* Shop */}
           <a href="#products" className={linkStyle("products")}>
             Shop
-            <span
-              className={`absolute left-0 -bottom-1 h-[2px] bg-white transition-all duration-300 ${
-                active === "products" ? "w-full" : "w-0 group-hover:w-full"
-              }`}
-            ></span>
           </a>
 
           {/* New */}
           <a href="#new" className={linkStyle("new")}>
             New
-            <span
-              className={`absolute left-0 -bottom-1 h-[2px] bg-white transition-all duration-300 ${
-                active === "new" ? "w-full" : "w-0 group-hover:w-full"
-              }`}
-            ></span>
           </a>
 
-          {/* Cart */}
+          {/* 🛒 Cart */}
           <Link href="/cart" className="relative group">
             <FaShoppingBag className="w-5 h-5 group-hover:scale-110 transition" />
 
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-white text-red-500 text-[12px] w-5 h-5 flex items-center justify-center rounded-full">
-                {totalItems}
+              <span className="absolute -top-2 -right-2 bg-white text-red-500 text-[11px] min-w-[18px] h-[18px] px-[5px] flex items-center justify-center rounded-full font-semibold animate-bounce">
+                {displayCount}
               </span>
             )}
           </Link>
 
           {/* Login */}
           <Link href="/login">
-            <button className="bg-white text-black px-5 py-2 rounded-full hover:scale-105 transition-all duration-300">
+            <button className="bg-white text-black px-5 py-2 rounded-full hover:scale-105 transition">
               Login
             </button>
           </Link>
@@ -124,7 +115,10 @@ export default function Navbar() {
           <a href="#products" onClick={() => setOpen(false)}>Shop</a>
           <a href="#new" onClick={() => setOpen(false)}>New</a>
 
-          <Link href="/cart" onClick={() => setOpen(false)}>Cart</Link>
+          {/* 🛒 Cart with count */}
+          <Link href="/cart" onClick={() => setOpen(false)}>
+            Cart ({displayCount})
+          </Link>
 
           <Link href="/login">
             <button className="bg-white text-black px-5 py-2 rounded-full mt-2">

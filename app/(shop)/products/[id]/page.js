@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useCart } from "../../../../context/CartContext";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -41,17 +41,25 @@ export default function ProductPage() {
     <section className="min-h-screen bg-black text-white py-20 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
 
-        {/* Image */}
+        {/* IMAGE */}
         <div className="relative w-full h-[400px] md:h-[500px] bg-gray-900 rounded-2xl overflow-hidden">
-          <Image
-            src={product.image || "/placeholder.png"}
-            alt={product.name || "product"}
-            fill
-            className="object-cover"
-          />
+
+          {product.images?.[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name || "product"}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+              No Image
+            </div>
+          )}
+
         </div>
 
-        {/* Info */}
+        {/* INFO */}
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">
             {product.name}
@@ -65,16 +73,19 @@ export default function ProductPage() {
             ₹{product.price}
           </p>
 
-          {/* Quantity Selector */}
+          {/* QUANTITY */}
           <div className="flex items-center gap-4 mt-6">
             <span>Qty:</span>
+
             <button
               onClick={() => setQty((prev) => Math.max(1, prev - 1))}
               className="px-3 py-1 bg-gray-700 rounded"
             >
               -
             </button>
+
             <span>{qty}</span>
+
             <button
               onClick={() => setQty((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-700 rounded"
@@ -83,14 +94,19 @@ export default function ProductPage() {
             </button>
           </div>
 
-          {/* Add to Cart */}
+          {/* ADD TO CART */}
           <button
-            onClick={() => addToCart(product, qty)}
+            onClick={() => {
+              for (let i = 0; i < qty; i++) {
+                addToCart(product);
+              }
+            }}
             className="mt-8 w-full bg-white text-black py-3 rounded-full font-semibold 
             hover:bg-black hover:text-white border border-white transition"
           >
             Add to Cart
           </button>
+
         </div>
       </div>
     </section>
