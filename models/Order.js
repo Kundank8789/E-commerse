@@ -16,12 +16,17 @@ const OrderSchema = new mongoose.Schema({
     default: "Pending",
   },
   address: {
-  phone: String,
-  city: String,
-  state: String, // ✅ NEW
-  pincode: String,
-  addressLine: String,
-},
+    phone: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+    addressLine: { type: String, required: true },
+  },
+  status: {
+    type: String,
+    enum: ["pending", "processing", "shipped", "delivered"],
+    default: "pending",
+  },
 }, { timestamps: true });
 
 export default mongoose.models.Order ||
