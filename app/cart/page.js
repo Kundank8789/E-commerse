@@ -6,8 +6,10 @@ import Link from "next/link";
 import { FaTrash } from "react-icons/fa";
 import { useCart } from "@/context/CartContext";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
+   const router = useRouter(); 
   const {
     cart,
     removeFromCart,
@@ -170,13 +172,11 @@ export default function CartPage() {
             </div>
 
             <button
-              onClick={handlePlaceOrder}
-              disabled={loading}
+              onClick={() => router.push("/checkout")}
               className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
             >
-              {loading ? "Placing Order..." : "Checkout"}
+              Checkout
             </button>
-
           </div>
 
         </div>

@@ -15,6 +15,13 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     default: "Pending",
   },
+  address: {
+  phone: String,
+  city: String,
+  state: String, // ✅ NEW
+  pincode: String,
+  addressLine: String,
+},
 }, { timestamps: true });
 
 export default mongoose.models.Order ||
