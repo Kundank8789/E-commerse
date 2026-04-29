@@ -65,9 +65,11 @@ export default function CheckoutPage() {
             });
 
             if (!res.ok) throw new Error("Order failed");
+            const order = await res.json();
 
             clearCart();
-            router.push("/order-success");
+            router.push(`/order-success?orderId=${order._id}`);
+
 
         } catch (err) {
             alert("❌ Failed to place order");

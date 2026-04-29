@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { FaShoppingBag } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -43,20 +44,24 @@ export default function Navbar() {
   }, []);
 
   const linkStyle = (id) =>
-    `relative group transition ${
-      active === id ? "text-white" : "text-gray-400"
+    `relative group transition ${active === id ? "text-white" : "text-gray-400"
     }`;
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md bg-black/70 border-b border-white/10">
 
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
 
         {/* Logo */}
-        <Link href="/">
-          <h1 className="text-2xl font-bold tracking-widest">
-            MY SHOPPING
-          </h1>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo.jpg"
+            alt="My Shopping Logo"
+            width={140}
+            height={40}
+            className="h-10 w-auto object-contain rounded hover:scale-105 transition"
+            priority
+          />
         </Link>
 
         {/* Desktop Menu */}
@@ -76,6 +81,10 @@ export default function Navbar() {
           <a href="#new" className={linkStyle("new")}>
             New
           </a>
+
+          <Link href="/orders" className="hover:text-white">
+            My Orders
+          </Link>
 
           {/* 🛒 Cart */}
           <Link href="/cart" className="relative group">

@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 export default function Hero() {
   const slides = [
     {
-      image: "/hero.jpg",
+      image: "/banner1.jpg",
       title: "New Summer Collection",
       subtitle: "Discover premium fashion crafted for style",
     },
     {
-      image: "/hero1.jpg",
+      image: "/banner2.jpg",
       title: "Big Sale is Live",
       subtitle: "Up to 50% off on selected items",
     },
