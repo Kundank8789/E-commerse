@@ -8,28 +8,40 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   // 🔥 FETCH USER ORDERS
-  const fetchOrders = async () => {
+ const fetchOrders = async () => {
+  try {
+    const res = await fetch("/api/my-orders", {
+      credentials: "include",
+    });
+
+    // 🔥 READ RAW RESPONSE FIRST
+    const text = await res.text();
+    let data;
+
     try {
-      const res = await fetch("/api/my-orders", {
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("API ERROR:", data);
-        setOrders([]);
-        return;
-      }
-
-      setOrders(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("FETCH ERROR:", err);
-      setOrders([]);
-    } finally {
-      setLoading(false);
+      data = JSON.parse(text);
+    } catch {
+      console.error("❌ NOT JSON RESPONSE:", text);
+      data = {};
     }
-  };
+
+    // 🔥 BETTER DEBUG
+    if (!res.ok) {
+      console.error("❌ STATUS:", res.status);
+      console.error("❌ API ERROR:", data);
+      setOrders([]);
+      return;
+    }
+
+    setOrders(Array.isArray(data) ? data : []);
+
+  } catch (err) {
+    console.error("❌ FETCH ERROR:", err);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 🔄 LOAD + AUTO REFRESH
   useEffect(() => {
