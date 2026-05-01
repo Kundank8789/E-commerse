@@ -35,14 +35,11 @@ export default function OrdersPage() {
   useEffect(() => {
     fetchOrders();
 
-    const interval = setInterval(() => {
-      fetchOrders();
-    }, 5000); // refresh every 5 sec
-
+    const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // ⏳ LOADING STATE
+  // ⏳ LOADING
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -59,10 +56,10 @@ export default function OrdersPage() {
           My Orders 📦
         </h1>
 
-        {/* ❌ EMPTY STATE */}
+        {/* ❌ EMPTY */}
         {orders.length === 0 ? (
           <div className="text-center text-gray-400">
-            <p className="text-lg">No orders yet</p>
+            <p className="text-lg">No orders yet 😔</p>
             <p className="text-sm mt-2">
               Start shopping and your orders will appear here
             </p>
@@ -71,10 +68,11 @@ export default function OrdersPage() {
           orders.map((order) => (
             <div
               key={order._id}
-              className="bg-gray-900 rounded-xl p-6 mb-8 shadow-lg border border-white/10"
+              className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 mb-8 shadow-xl border border-white/10 hover:scale-[1.01] transition"
             >
               {/* 🧾 HEADER */}
               <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
+
                 <div>
                   <p className="text-sm text-gray-400">
                     Order ID: {order._id}
@@ -84,9 +82,17 @@ export default function OrdersPage() {
                   </p>
                 </div>
 
-                <p className="text-lg font-semibold mt-2 md:mt-0">
-                  Total: ₹{order.total}
-                </p>
+                <div className="flex flex-col items-start md:items-end gap-2 mt-2 md:mt-0">
+                  <p className="text-lg font-semibold">
+                    Total: ₹{order.total}
+                  </p>
+
+                  {/* 🟡 STATUS BADGE */}
+                  <span className="px-3 py-1 rounded-full text-sm bg-yellow-500/20 text-yellow-400">
+                    {order.status}
+                  </span>
+                </div>
+
               </div>
 
               {/* 📦 TIMELINE */}
@@ -97,19 +103,41 @@ export default function OrdersPage() {
 
               {/* 🛒 ITEMS */}
               <div className="mt-6">
-                <p className="font-semibold mb-2">Items:</p>
+                <p className="font-semibold mb-3 text-lg">Items</p>
 
                 {order.items?.map((item, i) => (
                   <div
                     key={i}
-                    className="flex justify-between text-sm text-gray-300 mb-1"
+                    className="flex gap-4 items-center bg-black/40 p-4 rounded-xl mb-3 hover:bg-black/60 transition"
                   >
-                    <span>
-                      {item.product?.name || "Product"} × {item.quantity}
-                    </span>
-                    <span>
-                      ₹{(item.product?.price || 0) * item.quantity}
-                    </span>
+                    {/* 🖼️ IMAGE */}
+                    <img
+                      src={item.product?.image || "/placeholder.png"}
+                      alt={item.product?.name}
+                      className="w-20 h-20 object-cover rounded-lg border"
+                    />
+
+                    {/* 📦 DETAILS */}
+                    <div className="flex-1">
+                      <p className="font-semibold text-white">
+                        {item.product?.name || "Product"}
+                      </p>
+
+                      <p className="text-sm text-gray-400">
+                        Qty: {item.quantity}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        ₹{item.product?.price || 0} each
+                      </p>
+                    </div>
+
+                    {/* 💰 TOTAL */}
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-400">
+                        ₹{(item.product?.price || 0) * item.quantity}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
