@@ -13,10 +13,10 @@ const OrderSchema = new mongoose.Schema(
     ],
     total: Number,
 
-    // ✅ SINGLE STATUS FIELD (FIXED)
+    // 🔥 UPDATED STATUS ENUM
     status: {
       type: String,
-      enum: ["pending", "processing", "shipped", "delivered"],
+      enum: ["pending", "processing", "shipped", "delivered", "cancelled"], // ✅ added
       default: "pending",
     },
 
@@ -30,7 +30,7 @@ const OrderSchema = new mongoose.Schema(
 
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // 🔥 IMPORTANT for /my-orders
+      ref: "User",
     },
   },
   { timestamps: true }

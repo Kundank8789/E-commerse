@@ -61,7 +61,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/logo.jpg"
+            src="/logo6.jpg"
             alt="My Shopping Logo"
             width={140}
             height={40}
