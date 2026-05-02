@@ -6,7 +6,7 @@ export async function GET(req, context) {
   try {
     await connectDB();
 
-    const { id } = context.params;
+    const { id } = await context.params;
 
     const order = await Order.findById(id).populate("items.product");
 
@@ -32,7 +32,7 @@ export async function PUT(req, context) {
   try {
     await connectDB();
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const { status } = await req.json();
 
     const existing = await Order.findById(id);
@@ -45,9 +45,10 @@ export async function PUT(req, context) {
     }
 
     // ❌ Prevent cancel after shipped/delivered
+    // ❌ only block cancel
     if (
-      existing.status === "shipped" ||
-      existing.status === "delivered"
+      status === "cancelled" &&
+      (existing.status === "shipped" || existing.status === "delivered")
     ) {
       return Response.json(
         { error: "Cannot cancel after shipping" },
