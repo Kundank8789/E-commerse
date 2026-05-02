@@ -6,22 +6,27 @@ import { useState, useEffect } from "react";
 import { FaShoppingBag } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useCart } from "@/context/CartContext";
+import { usePathname } from "next/navigation"; // ✅ ADD THIS
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("home");
 
   const { cart } = useCart();
+  const pathname = usePathname(); // ✅ ADD THIS
+
+  // ❌ HIDE NAVBAR ON ADMIN ROUTES
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   const totalItems = cart.reduce(
     (acc, item) => acc + item.quantity,
     0
   );
 
-  // 🔥 limit count display
   const displayCount = totalItems > 99 ? "99+" : totalItems;
 
-  // 🔥 scroll detection
   useEffect(() => {
     const handleScroll = () => {
       const sections = ["home", "products", "new"];
@@ -44,7 +49,8 @@ export default function Navbar() {
   }, []);
 
   const linkStyle = (id) =>
-    `relative group transition ${active === id ? "text-white" : "text-gray-400"
+    `relative group transition ${
+      active === id ? "text-white" : "text-gray-400"
     }`;
 
   return (
@@ -67,20 +73,9 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-10 text-sm font-medium">
 
-          {/* Home */}
-          <a href="#home" className={linkStyle("home")}>
-            Home
-          </a>
-
-          {/* Shop */}
-          <a href="#products" className={linkStyle("products")}>
-            Shop
-          </a>
-
-          {/* New */}
-          <a href="#new" className={linkStyle("new")}>
-            New
-          </a>
+          <a href="#home" className={linkStyle("home")}>Home</a>
+          <a href="#products" className={linkStyle("products")}>Shop</a>
+          <a href="#new" className={linkStyle("new")}>New</a>
 
           <Link href="/orders" className="hover:text-white">
             My Orders
@@ -124,7 +119,6 @@ export default function Navbar() {
           <a href="#products" onClick={() => setOpen(false)}>Shop</a>
           <a href="#new" onClick={() => setOpen(false)}>New</a>
 
-          {/* 🛒 Cart with count */}
           <Link href="/cart" onClick={() => setOpen(false)}>
             Cart ({displayCount})
           </Link>

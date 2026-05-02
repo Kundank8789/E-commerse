@@ -28,7 +28,7 @@ export default function LoginPage() {
       <form onSubmit={handleLogin} className="bg-neutral-900 p-8 rounded-xl w-full max-w-md">
 
         <h1 className="text-2xl font-bold mb-6 text-center">
-          Admin Login
+          User Login
         </h1>
 
         <input

@@ -4,9 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaInstagram, FaTwitter, FaFacebook } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { usePathname } from "next/navigation"; // ✅ ADD THIS
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const pathname = usePathname(); // ✅ ADD THIS
+
+  // ❌ HIDE FOOTER ON ADMIN
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   const handleSubscribe = () => {
     if (!email || !email.includes("@")) {
@@ -29,7 +36,6 @@ export default function Footer() {
             Premium fashion for modern lifestyle. Designed for comfort and style.
           </p>
 
-          {/* Social Icons */}
           <div className="flex gap-4 mt-6 text-lg">
             <a href="#" className="hover:scale-110 transition hover:text-pink-500">
               <FaInstagram />
@@ -47,9 +53,9 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold text-lg mb-4">Shop</h3>
           <ul className="space-y-2 text-gray-400 text-sm">
-            <li><Link href="/products" className="hover:text-white transition">All Products</Link></li>
-            <li><Link href="/collections" className="hover:text-white transition">Collections</Link></li>
-            <li><Link href="/new" className="hover:text-white transition">New Arrivals</Link></li>
+            <li><Link href="/products">All Products</Link></li>
+            <li><Link href="/collections">Collections</Link></li>
+            <li><Link href="/new">New Arrivals</Link></li>
           </ul>
         </div>
 
@@ -57,9 +63,9 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold text-lg mb-4">Support</h3>
           <ul className="space-y-2 text-gray-400 text-sm">
-            <li><Link href="/contact" className="hover:text-white transition">Contact Us</Link></li>
-            <li><Link href="/faq" className="hover:text-white transition">FAQ</Link></li>
-            <li><Link href="/returns" className="hover:text-white transition">Returns</Link></li>
+            <li><Link href="/contact">Contact Us</Link></li>
+            <li><Link href="/faq">FAQ</Link></li>
+            <li><Link href="/returns">Returns</Link></li>
           </ul>
         </div>
 
@@ -72,7 +78,6 @@ export default function Footer() {
           </p>
 
           <div className="flex mt-5 overflow-hidden rounded-full border border-white/20">
-
             <input
               type="email"
               value={email}
@@ -87,7 +92,6 @@ export default function Footer() {
             >
               Join
             </button>
-
           </div>
         </div>
 
