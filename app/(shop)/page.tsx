@@ -8,28 +8,34 @@ import Reveal from "@/components/ui/Reveal";
 
 export default function HomePage() {
   return (
-    <main className="bg-black text-white">
+    <main className="bg-white text-black">
 
+      {/* HERO */}
       <Reveal>
         <Hero />
       </Reveal>
 
+      {/* CATEGORIES */}
       <Reveal delay={100}>
         <Categories />
       </Reveal>
 
+      {/* FEATURED PRODUCTS */}
       <Reveal delay={200}>
         <FeaturedProducts />
       </Reveal>
 
+      {/* NEW ARRIVALS */}
       <Reveal delay={300}>
         <NewArrivals />
       </Reveal>
 
+      {/* PROMO */}
       <Reveal delay={400}>
         <PromoBanner />
       </Reveal>
 
+      {/* NEWSLETTER */}
       <Reveal delay={500}>
         <Newsletter />
       </Reveal>
