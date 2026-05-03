@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Newsletter() {
   return (
-    <section className="bg-black text-white py-16 px-6">
+    <section className="bg-white text-black py-16 px-6">
 
       <div className="max-w-4xl mx-auto text-center">
 
@@ -24,7 +24,7 @@ export default function Newsletter() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-gray-400 mt-4 text-lg"
+          className="text-gray-600 mt-4 text-lg"
         >
           Get exclusive deals, new arrivals & special offers
         </motion.p>
@@ -41,21 +41,21 @@ export default function Newsletter() {
             type="email"
             placeholder="Enter your email"
             className="w-full md:w-[380px] px-5 py-3 rounded-full 
-            bg-neutral-900 border border-white/20 
-            focus:outline-none focus:border-white 
+            bg-gray-100 border border-gray-300 
+            focus:outline-none focus:border-black 
             transition"
           />
 
           <button className="px-8 py-3 rounded-full font-medium 
-          bg-white text-black 
-          hover:bg-black hover:text-white border border-white 
+          bg-black text-white 
+          hover:bg-gray-800 
           transition-all duration-300 hover:scale-105">
             Subscribe
           </button>
 
         </motion.div>
 
-        {/* Optional small note */}
+        {/* Small note */}
         <p className="text-xs text-gray-500 mt-4">
           No spam. Only good stuff.
         </p>

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -11,12 +10,10 @@ export default function Categories() {
   const router = useRouter();
 
   useEffect(() => {
-    // fetch categories
     fetch("/api/categories")
       .then((res) => res.json())
       .then(setCategories);
 
-    // fetch products
     fetch("/api/products")
       .then((res) => res.json())
       .then(setProducts);
@@ -30,64 +27,54 @@ export default function Categories() {
         p.categories?.some((c) => c._id === categoryId)
     );
 
-    return product?.images?.[0] || null;
+    return product?.images?.[0] || "/placeholder.jpg";
   };
 
   return (
-    <section className="bg-black text-white py-16">
+    <section className="bg-white text-black py-16">
 
-      <div className="max-w-7xl mx-auto px-6 mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-center">
-          Shop by Category
+      {/* TITLE */}
+      <div className="text-center mb-10">
+        <h2 className="text-2xl md:text-3xl font-semibold tracking-wide">
+          SHOP BY CATEGORY
         </h2>
+        <div className="w-20 h-[2px] bg-yellow-600 mx-auto mt-3" />
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 px-6">
+      {/* CATEGORY ROW */}
+      <div className="w-full px-10 flex justify-center gap-10 flex-wrap">
 
-        {categories.map((cat, index) => {
+        {categories.map((cat) => {
           const image = getCategoryImage(cat._id);
 
           return (
-            <motion.div
+            <div
               key={cat._id}
               onClick={() => router.push(`/products?category=${cat._id}`)}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="relative group overflow-hidden rounded-2xl cursor-pointer"
+              className="flex flex-col items-center cursor-pointer group min-w-[100px]"
             >
+              {/* CIRCLE IMAGE */}
+              <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border border-gray-200 shadow-sm group-hover:shadow-md transition">
 
-              {/* IMAGE */}
-              {image ? (
                 <Image
                   src={image}
                   alt={cat.name}
-                  width={500}
-                  height={500}
-                  className="w-full h-[220px] md:h-[260px] object-cover group-hover:scale-110 transition duration-500"
+                  width={200}
+                  height={200}
+                  className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                 />
-              ) : (
-                <div className="w-full h-[220px] md:h-[260px] bg-gray-700 flex items-center justify-center">
-                  No Image
-                </div>
-              )}
-
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition" />
-
-              {/* Text */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-lg md:text-xl font-semibold">
-                  {cat.name}
-                </h3>
               </div>
 
-            </motion.div>
+              {/* NAME */}
+              <p className="mt-3 text-sm font-medium text-center group-hover:text-yellow-600 transition">
+                {cat.name}
+              </p>
+            </div>
           );
         })}
 
       </div>
+
     </section>
   );
 }

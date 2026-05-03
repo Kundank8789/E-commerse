@@ -26,8 +26,7 @@ export default function NewArrivals() {
         const data = await res.json();
 
         const sorted = [...data].sort(
-          (a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
         setProducts(sorted.slice(0, 8));
@@ -42,35 +41,35 @@ export default function NewArrivals() {
     fetchProducts();
   }, []);
 
-  // 🔥 LOADING
+  // LOADING
   if (loading) {
     return (
-      <section className="py-16 bg-black text-white text-center">
-        <p className="text-gray-400">Loading new arrivals...</p>
+      <section className="py-16 bg-white text-black text-center">
+        <p className="text-gray-500">Loading new arrivals...</p>
       </section>
     );
   }
 
-  // 🔥 ERROR
+  // ERROR
   if (error) {
     return (
-      <section className="py-16 bg-black text-white text-center">
+      <section className="py-16 bg-white text-black text-center">
         <p className="text-red-500">Failed to load products ❌</p>
       </section>
     );
   }
 
-  // 🔥 EMPTY
+  // EMPTY
   if (products.length === 0) {
     return (
-      <section className="py-16 bg-black text-white text-center">
-        <p className="text-gray-400">No products available</p>
+      <section className="py-16 bg-white text-black text-center">
+        <p className="text-gray-500">No products available</p>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-black text-white">
+    <section className="py-16 bg-white text-black">
 
       {/* Heading */}
       <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
@@ -97,7 +96,7 @@ export default function NewArrivals() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative bg-neutral-900 rounded-2xl overflow-hidden border border-white/10"
+              className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200"
             >
 
               {/* Image */}
@@ -111,21 +110,21 @@ export default function NewArrivals() {
                     className="w-full h-[260px] object-cover group-hover:scale-110 transition duration-500"
                   />
                 ) : (
-                  <div className="w-full h-[260px] bg-gray-700 flex items-center justify-center">
+                  <div className="w-full h-[260px] bg-gray-200 flex items-center justify-center">
                     No Image
                   </div>
                 )}
 
                 {/* Tag */}
-                <span className="absolute top-3 left-3 bg-white text-black text-[10px] px-3 py-1 rounded-full font-semibold">
+                <span className="absolute top-3 left-3 bg-black text-white text-[10px] px-3 py-1 rounded-full font-semibold">
                   NEW
                 </span>
 
                 {/* Quick View */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                <div className="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   <button
                     onClick={() => setSelectedProduct(product)}
-                    className="bg-white text-black px-6 py-2 rounded-full font-medium hover:scale-105 transition"
+                    className="bg-black text-white px-6 py-2 rounded-full font-medium hover:scale-105 transition"
                   >
                     Quick View
                   </button>
@@ -138,7 +137,7 @@ export default function NewArrivals() {
                   {product.name}
                 </h3>
 
-                <p className="text-gray-400 mt-1 text-sm">
+                <p className="text-gray-600 mt-1 text-sm">
                   ₹{product.price}
                 </p>
 
@@ -148,8 +147,8 @@ export default function NewArrivals() {
                     addToCart(product);
                     toast.success("Added to cart 🛒");
                   }}
-                  className="mt-4 w-full bg-white text-black py-2 rounded-full font-medium 
-                  hover:bg-black hover:text-white border border-white transition-all duration-300"
+                  className="mt-4 w-full bg-black text-white py-2 rounded-full font-medium 
+                  hover:bg-gray-800 transition"
                 >
                   Add to Cart
                 </button>

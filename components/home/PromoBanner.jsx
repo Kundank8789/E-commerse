@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function PromoBanner() {
   return (
-    <section className="relative py-16 px-6 overflow-hidden">
+    <section className="relative py-20 px-6 overflow-hidden">
 
       {/* Background Image */}
       <Image
@@ -15,11 +15,11 @@ export default function PromoBanner() {
         className="object-cover scale-105"
       />
 
-      {/* Gradient Overlay (IMPORTANT) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/80" />
+      {/* ✅ LIGHT OVERLAY (FIXED) */}
+      <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
 
       {/* Content */}
-      <div className="relative max-w-5xl mx-auto text-center text-white">
+      <div className="relative max-w-5xl mx-auto text-center text-black">
 
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
@@ -35,7 +35,7 @@ export default function PromoBanner() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-4 text-lg md:text-xl text-gray-200"
+          className="mt-4 text-lg md:text-xl text-gray-700"
         >
           Up to 50% Off on Selected Items
         </motion.p>
@@ -45,8 +45,8 @@ export default function PromoBanner() {
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
           className="mt-10 px-10 py-3 rounded-full font-semibold 
-          bg-white text-black 
-          hover:bg-black hover:text-white border border-white 
+          bg-black text-white 
+          hover:bg-gray-800 
           transition-all duration-300 hover:scale-105"
         >
           Shop Now
