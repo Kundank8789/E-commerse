@@ -42,7 +42,7 @@ export default function Categories() {
       </div>
 
       {/* CATEGORY ROW */}
-      <div className="w-full px-10 flex justify-center gap-10 flex-wrap">
+      <div className="w-full px-6 md:px-10 flex justify-center gap-8 md:gap-12 flex-wrap">
 
         {categories.map((cat) => {
           const image = getCategoryImage(cat._id);
@@ -54,7 +54,7 @@ export default function Categories() {
               className="flex flex-col items-center cursor-pointer group min-w-[100px]"
             >
               {/* CIRCLE IMAGE */}
-              <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border border-gray-200 shadow-sm group-hover:shadow-md transition">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border border-gray-200 shadow-sm group-hover:shadow-md transition">
 
                 <Image
                   src={image}
