@@ -16,12 +16,11 @@ export default function FeaturedProducts() {
     async function fetchProducts() {
       try {
         const res = await fetch("/api/products");
-
         if (!res.ok) throw new Error("Failed");
 
         const data = await res.json();
 
-        setProducts(data.slice(0, 2)); // ✅ keep dynamic (admin controlled)
+        setProducts(data.slice(0, 4)); // ✅ SHOW 4 PRODUCTS
       } catch (err) {
         console.error(err);
         setError(true);
@@ -53,14 +52,14 @@ export default function FeaturedProducts() {
     <section className="py-16 bg-white text-black">
 
       {/* Heading */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-8">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-10">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Featured Products
+          Jweallary Products
         </h2>
       </div>
 
-      {/* Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 px-6">
+      {/* GRID */}
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
         {products.map((product, index) => {
           const image =
@@ -73,60 +72,51 @@ export default function FeaturedProducts() {
           return (
             <motion.div
               key={product._id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.2 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative rounded-3xl overflow-hidden border border-gray-200 cursor-pointer"
+              className="group bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition"
               onClick={() => router.push(`/products/${product._id}`)}
             >
 
-              {/* Image */}
-              <div className="relative h-[420px] overflow-hidden">
+              {/* IMAGE (SMALLER FIXED HEIGHT) */}
+              <div className="relative h-56 overflow-hidden">
                 {image ? (
                   <Image
                     src={image}
                     alt={product.name || "product"}
                     fill
-                    className="object-cover group-hover:scale-105 transition duration-700"
+                    className="object-cover group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                     No Image
                   </div>
                 )}
+              </div>
 
-                {/* Overlay (lighter for white theme) */}
-                <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-white/30 to-transparent" />
+              {/* CONTENT */}
+              <div className="p-4">
 
-                {/* Tag */}
-                <span className="absolute top-4 left-4 bg-black text-white text-xs px-4 py-1 rounded-full font-semibold">
-                  FEATURED
-                </span>
+                <h3 className="text-lg font-semibold text-black line-clamp-1">
+                  {product.name}
+                </h3>
 
-                {/* Content */}
-                <div className="absolute bottom-6 left-6">
+                <p className="text-gray-600 mt-1 mb-3">
+                  ₹{product.price}
+                </p>
 
-                  <h3 className="text-2xl font-bold mb-2 text-black">
-                    {product.name}
-                  </h3>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/products/${product._id}`);
+                  }}
+                  className="w-full bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition"
+                >
+                  View Product
+                </button>
 
-                  <p className="text-gray-700 mb-4">
-                    ₹{product.price}
-                  </p>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/products/${product._id}`);
-                    }}
-                    className="bg-black text-white px-6 py-2 rounded-full font-medium 
-                    hover:bg-gray-800 transition"
-                  >
-                    Shop Now
-                  </button>
-
-                </div>
               </div>
 
             </motion.div>
