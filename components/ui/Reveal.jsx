@@ -8,6 +8,7 @@ export default function Reveal({
   y = 30,
   once = true,
   className = "",
+  fullWidth = false,
 }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -39,6 +40,11 @@ export default function Reveal({
         transform: visible ? "translateY(0px)" : `translateY(${y}px)`,
         opacity: visible ? 1 : 0,
         transition: `all 600ms ease ${delay}ms`,
+        ...(fullWidth && {
+          width: "100vw",
+          marginLeft: "calc(-50vw + 50%)",
+          overflow: "hidden",
+        }),
       }}
       className={className}
     >
