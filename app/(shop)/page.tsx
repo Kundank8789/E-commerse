@@ -10,15 +10,15 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="bg-white text-black overflow-hidden">
+    <main className="bg-white text-black ">
 
       {/* HERO */}
-      <Reveal>
+      <Reveal fullWidth>
         <Hero />
       </Reveal>
 
       {/* CATEGORIES */}
-      <Reveal delay={100}>
+      <Reveal delay={100} fullWidth>
         <Categories />
       </Reveal>
 
