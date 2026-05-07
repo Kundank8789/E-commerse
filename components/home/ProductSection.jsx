@@ -1,0 +1,98 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+export default function ProductSection({
+  title,
+  category,
+}) {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+
+        // ✅ FILTER PRODUCTS BY CATEGORY
+        const filtered = data.filter((p) =>
+          p.categories?.some(
+            (c) =>
+              c.name?.toLowerCase() ===
+              category.toLowerCase()
+          )
+        );
+
+        // ✅ SHOW ONLY 4 PRODUCTS
+        setProducts(filtered.slice(0, 4));
+      });
+  }, [category]);
+
+  return (
+    <section className="py-16 bg-white text-black">
+
+      {/* HEADER */}
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between mb-10">
+
+        <h2 className="text-3xl md:text-4xl font-bold">
+          {title}
+        </h2>
+
+        <Link
+          href={`/products`}
+          className="text-sm md:text-base font-medium hover:text-yellow-600 transition"
+        >
+          See More →
+        </Link>
+
+      </div>
+
+      {/* PRODUCTS */}
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+
+        {products.map((product) => (
+
+          <Link
+            key={product._id}
+            href={`/products/${product._id}`}
+            className="group"
+          >
+
+            {/* IMAGE */}
+            <div className="relative h-64 rounded-2xl overflow-hidden bg-gray-100">
+
+              <Image
+                src={
+                  product.images &&
+                  product.images.length > 0
+                    ? product.images[0]
+                    : "/placeholder.jpg"
+                }
+                alt={product.name}
+                fill
+                className="object-cover group-hover:scale-105 transition duration-500"
+              />
+            </div>
+
+            {/* INFO */}
+            <div className="mt-4">
+
+              <h3 className="font-semibold line-clamp-1">
+                {product.name}
+              </h3>
+
+              <p className="text-gray-600 mt-1">
+                ₹{product.price}
+              </p>
+
+            </div>
+
+          </Link>
+        ))}
+
+      </div>
+
+    </section>
+  );
+}

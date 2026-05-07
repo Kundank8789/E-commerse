@@ -31,7 +31,7 @@ export default function Navbar() {
             <Image
               src="/newlogo.png"
               alt="Logo"
-              width={110}
+              width={100}
               height={40}
               className="object-contain"
             />
@@ -84,7 +84,7 @@ export default function Navbar() {
 
           {/* Login */}
           <Link href="/login">
-            <button className="bg-white text-black px-4 py-2 rounded-full hover:bg-yellow-400 transition text-sm">
+            <button className="bg-white text-black px-4 py-2 rounded-full hover:text-yellow-400 transition relative after:absolute after:left-0 after:-bottom-1 after:h-[1px] after:w-0 hover:after:w-full after:bg-yellow-400 after:transition-all text-sm">
               Login
             </button>
           </Link>
@@ -100,15 +100,15 @@ export default function Navbar() {
 
       {/* 🔥 MOBILE MENU (IMPROVED) */}
       {open && (
-        <div className="md:hidden bg-black border-t border-white/10 px-4 py-5 flex flex-col gap-4 text-sm animate-fadeIn">
+        <div className="md:hidden absolute top-full left-0 w-full bg-black border-t border-white/10 px-4 py-5 flex flex-col gap-4 text-sm animate-fadeIn shadow-2xl">
 
           {/* 🔍 Mobile Search */}
-          <div className="flex items-center bg-white rounded-full px-4 py-2">
-            <FaSearch className="text-gray-400 mr-2" />
+          <div className="flex items-center bg-neutral-900 rounded-full border border-white/20 px-4 py-2">
+            <FaSearch className="text-gray-500 mr-2" />
             <input
               type="text"
               placeholder="Search..."
-              className="w-full text-black text-sm outline-none"
+              className="w-full text-white placeholder-gray-400 text-sm outline-none"
             />
           </div>
 
