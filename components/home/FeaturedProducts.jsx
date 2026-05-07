@@ -54,7 +54,7 @@ export default function FeaturedProducts() {
       {/* Heading */}
       <div className="max-w-7xl mx-auto px-6 text-center mb-10">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Trendings Products
+          Trending Products
         </h2>
       </div>
 
