@@ -79,13 +79,14 @@ export default function NewArrivals() {
       </div>
 
       {/* Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 px-6">
+      {/* Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 px-4 md:px-6">
 
         {products.map((product, index) => {
           const image =
             product?.images?.[0] &&
-            typeof product.images[0] === "string" &&
-            product.images[0].trim() !== ""
+              typeof product.images[0] === "string" &&
+              product.images[0].trim() !== ""
               ? product.images[0]
               : null;
 
@@ -96,7 +97,7 @@ export default function NewArrivals() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200"
+              className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300"
             >
 
               {/* Image */}
@@ -107,24 +108,24 @@ export default function NewArrivals() {
                     alt={product.name || "product"}
                     width={500}
                     height={500}
-                    className="w-full h-[260px] object-cover group-hover:scale-110 transition duration-500"
+                    className="w-full h-[160px] sm:h-[220px] md:h-[260px] object-cover group-hover:scale-105 transition duration-500"
                   />
                 ) : (
-                  <div className="w-full h-[260px] bg-gray-200 flex items-center justify-center">
+                  <div className="w-full h-[160px] sm:h-[220px] md:h-[260px] bg-gray-200 flex items-center justify-center">
                     No Image
                   </div>
                 )}
 
                 {/* Tag */}
-                <span className="absolute top-3 left-3 bg-black text-white text-[10px] px-3 py-1 rounded-full font-semibold">
+                <span className="absolute top-2 left-2 bg-black text-white text-[9px] sm:text-[10px] px-2 sm:px-3 py-1 rounded-full font-semibold">
                   NEW
                 </span>
 
                 {/* Quick View */}
-                <div className="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   <button
                     onClick={() => setSelectedProduct(product)}
-                    className="bg-black text-white px-6 py-2 rounded-full font-medium hover:scale-105 transition"
+                    className="bg-black text-white px-3 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-medium hover:scale-105 transition"
                   >
                     Quick View
                   </button>
@@ -132,12 +133,12 @@ export default function NewArrivals() {
               </div>
 
               {/* Content */}
-              <div className="p-5">
-                <h3 className="text-base font-semibold tracking-wide">
+              <div className="p-3 sm:p-4">
+                <h3 className="text-sm sm:text-base font-semibold line-clamp-1">
                   {product.name}
                 </h3>
 
-                <p className="text-gray-600 mt-1 text-sm">
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">
                   ₹{product.price}
                 </p>
 
@@ -147,8 +148,7 @@ export default function NewArrivals() {
                     addToCart(product);
                     toast.success("Added to cart 🛒");
                   }}
-                  className="mt-4 w-full bg-black text-white py-2 rounded-full font-medium 
-                  hover:bg-gray-800 transition"
+                  className="mt-3 w-full bg-black text-white py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition"
                 >
                   Add to Cart
                 </button>
