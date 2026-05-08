@@ -59,13 +59,14 @@ export default function FeaturedProducts() {
       </div>
 
       {/* GRID */}
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* GRID */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
 
         {products.map((product, index) => {
           const image =
             product?.images?.[0] &&
-            typeof product.images[0] === "string" &&
-            product.images[0].trim() !== ""
+              typeof product.images[0] === "string" &&
+              product.images[0].trim() !== ""
               ? product.images[0]
               : null;
 
@@ -76,12 +77,12 @@ export default function FeaturedProducts() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition"
+              className="group bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
               onClick={() => router.push(`/products/${product._id}`)}
             >
 
-              {/* IMAGE (SMALLER FIXED HEIGHT) */}
-              <div className="relative h-56 overflow-hidden">
+              {/* IMAGE */}
+              <div className="relative h-[160px] sm:h-[220px] md:h-56 overflow-hidden">
                 {image ? (
                   <Image
                     src={image}
@@ -97,13 +98,13 @@ export default function FeaturedProducts() {
               </div>
 
               {/* CONTENT */}
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
 
-                <h3 className="text-lg font-semibold text-black line-clamp-1">
+                <h3 className="text-sm sm:text-lg font-semibold text-black line-clamp-1">
                   {product.name}
                 </h3>
 
-                <p className="text-gray-600 mt-1 mb-3">
+                <p className="text-gray-600 mt-1 mb-3 text-sm sm:text-base">
                   ₹{product.price}
                 </p>
 
@@ -112,7 +113,7 @@ export default function FeaturedProducts() {
                     e.stopPropagation();
                     router.push(`/products/${product._id}`);
                   }}
-                  className="w-full bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition"
+                  className="w-full bg-black text-white py-2 rounded-full text-xs sm:text-sm font-medium hover:bg-gray-800 transition"
                 >
                   View Product
                 </button>
