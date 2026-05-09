@@ -33,7 +33,7 @@ export default function OrdersPage() {
       return;
     }
 
-    setOrders(Array.isArray(data) ? data : []);
+    setOrders(data.orders || []);
 
   } catch (err) {
     console.error("❌ FETCH ERROR:", err);
@@ -54,7 +54,7 @@ export default function OrdersPage() {
   // ⏳ LOADING UI
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <p className="animate-pulse text-lg">
           Loading your orders...
         </p>
@@ -63,7 +63,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-16">
+    <div className="min-h-screen bg-white text-black px-6 py-16">
       <div className="max-w-5xl mx-auto">
         
         {/* 🧾 PAGE TITLE */}

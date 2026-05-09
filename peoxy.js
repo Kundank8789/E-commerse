@@ -4,18 +4,45 @@ import jwt from "jsonwebtoken";
 export function middleware(req) {
   const token = req.cookies.get("token")?.value;
 
+  // NO TOKEN
   if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    // VERIFY TOKEN
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    const pathname = req.nextUrl.pathname;
+
+    // ADMIN PROTECTION
+    if (
+      pathname.startsWith("/admin") &&
+      decoded.role !== "admin"
+    ) {
+      return NextResponse.redirect(
+        new URL("/", req.url)
+      );
+    }
+
     return NextResponse.next();
-  } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+
+  } catch (error) {
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 }
 
 export const config = {
-  matcher: ["/admin"],
+  matcher: [
+    "/admin/:path*",
+    "/checkout",
+    "/account/:path*",
+  ],
 };
