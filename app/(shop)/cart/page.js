@@ -65,7 +65,7 @@ export default function CartPage() {
   };
 
   return (
-    <section className="bg-black text-white min-h-screen py-16 px-6">
+    <section className="bg-white text-black min-h-screen py-16 px-6">
 
       <h1 className="text-4xl font-bold text-center mb-10">
         Your Cart 🛒
@@ -76,7 +76,7 @@ export default function CartPage() {
           <p className="text-gray-400">Your cart is empty</p>
           <Link
             href="/products"
-            className="mt-4 inline-block bg-white text-black px-6 py-2 rounded-lg"
+            className="mt-4 inline-block border border-black px-6 py-2 rounded-xl hover:bg-black hover:text-white transition"
           >
             Continue Shopping
           </Link>
@@ -90,7 +90,7 @@ export default function CartPage() {
             {cart.map((item, index) => (
               <div
                 key={index}
-                className="flex gap-4 bg-gray-900 p-4 rounded-xl items-center"
+                className="flex gap-4 bg-white border border-gray-200 shadow-sm p-4 rounded-2xl items-center hover:shadow-md transition"
               >
 
                 {/* IMAGE */}
@@ -100,7 +100,7 @@ export default function CartPage() {
                     alt={item.name}
                     width={100}
                     height={100}
-                    className="rounded-lg object-cover"
+                    className="rounded-xl object-cover border border-gray-200"
                   />
                 ) : (
                   <div className="w-[100px] h-[100px] bg-gray-700 flex items-center justify-center text-xs rounded-lg">
@@ -111,26 +111,26 @@ export default function CartPage() {
                 {/* INFO */}
                 <div className="flex-1">
                   <h2 className="font-semibold">{item.name}</h2>
-                  <p className="text-gray-400 text-sm">₹{item.price}</p>
+                  <p className="text-gray-500 text-sm mt-1">₹{item.price}</p>
 
                   {/* QUANTITY */}
                   <div className="flex items-center gap-3 mt-3">
 
                     <button
                       onClick={() => decreaseQty(item)}
-                      className="bg-gray-700 px-3 py-1 rounded"
+                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
                     >
                       -
                     </button>
 
-                    <span>{item.quantity}</span>
+                    <span  className="font-semibold min-w-[20px] text-center">{item.quantity}</span>
 
                     <button
                       onClick={() => {
                         addToCart(item);
                         toast.success("Quantity updated 🛒");
                       }}
-                      className="bg-gray-700 px-3 py-1 rounded"
+                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
                     >
                       +
                     </button>
@@ -144,7 +144,7 @@ export default function CartPage() {
                     removeFromCart(item);
                     toast.success("Removed from cart");
                   }}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 transition cursor-pointer"
                 >
                   <FaTrash />
                 </button>
@@ -155,7 +155,7 @@ export default function CartPage() {
           </div>
 
           {/* RIGHT */}
-          <div className="bg-gray-900 p-6 rounded-xl h-fit">
+          <div className="bg-white border border-gray-200 shadow-sm p-6 rounded-2xl h-fit sticky top-24">
 
             <h2 className="text-xl font-semibold mb-4">
               Order Summary
@@ -173,7 +173,7 @@ export default function CartPage() {
 
             <button
               onClick={() => router.push("/checkout")}
-              className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+              className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-all duration-300"
             >
               Checkout
             </button>
