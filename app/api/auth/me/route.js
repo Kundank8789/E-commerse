@@ -7,42 +7,64 @@ export async function GET(req) {
   try {
     await connectDB();
 
+    // GET TOKEN
     const token = req.cookies.get("token")?.value;
 
-    // 🔐 NO TOKEN
+    // NO TOKEN
     if (!token) {
       return NextResponse.json(
-        { error: "Not logged in" },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
 
+    // VERIFY TOKEN
     let decoded;
 
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
+    } catch (error) {
       return NextResponse.json(
-        { error: "Token expired or invalid" },
+        {
+          success: false,
+          error: "Invalid or expired token",
+        },
         { status: 401 }
       );
     }
 
-    // 👤 GET USER
-    const user = await User.findById(decoded.id).select("-password");
+    // FIND USER
+    const user = await User.findById(decoded.id)
+      .select("-password");
 
+    // USER NOT FOUND
     if (!user) {
       return NextResponse.json(
-        { error: "User not found" },
+        {
+          success: false,
+          error: "User not found",
+        },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(user);
+    // SUCCESS
+    return NextResponse.json({
+      success: true,
+      user,
+    });
 
-  } catch (err) {
+  } catch (error) {
+    console.error("GET USER ERROR:", error);
+
     return NextResponse.json(
-      { error: "Server error" },
+      {
+        success: false,
+        error: "Internal server error",
+      },
       { status: 500 }
     );
   }
