@@ -20,39 +20,47 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       setLoading(true);
 
+      // STEP 1 — Register
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-
-        toast.success("Account created successfully 🎉");
-
-        setForm({
-          name: "",
-          email: "",
-          password: "",
-        });
-
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
-
-      } else {
-
+      if (!res.ok) {
         toast.error(data.error || "Registration failed");
-
+        return;
       }
+
+      // STEP 2 — Auto login to get token cookie ✅
+      const loginRes = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      if (!loginRes.ok) {
+        toast.error("Registered but login failed, please login manually");
+        router.push("/login");
+        return;
+      }
+
+      // STEP 3 — Token is now set in cookie, safe to go to checkout ✅
+      toast.success("Account created successfully 🎉");
+      setForm({ name: "", email: "", password: "" });
+
+      setTimeout(() => {
+        router.push("/checkout"); // ✅ now middleware will pass
+      }, 1500);
+
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
@@ -208,7 +216,7 @@ export default function RegisterPage() {
           {/* GOOGLE BUTTON */}
           <button
             type="button"
-            
+
             className="w-full border border-gray-300 py-3 rounded-2xl 
             font-medium hover:bg-gray-50 transition"
           >
