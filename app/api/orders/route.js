@@ -67,7 +67,8 @@ export async function GET() {
     await connectDB();
 
     const orders = await Order.find()
-      .populate("items.product")
+    .populate("user", "name email")  
+      .populate("items.product", "name images price")
       .sort({ createdAt: -1 });
 
     return Response.json(orders);
