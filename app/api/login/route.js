@@ -34,6 +34,9 @@ export async function POST(req) {
     cookieStore.set("token", token, {
       httpOnly: true,
       path: "/",
+      maxAge: 60 * 60 * 24 * 7,                           // stays 7 days
+      sameSite: "lax",                                     // protects from CSRF
+      secure: process.env.NODE_ENV === "production",       // https only in production
     });
 
     return Response.json({ message: "Login successful" });
