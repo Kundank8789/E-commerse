@@ -20,11 +20,12 @@ export default function ProductsClient() {
   useEffect(() => {
     fetch("/api/products")
       .then((res) => res.json())
-      .then(setProducts);
+      .then((data) => setProducts(Array.isArray(data) ? data : data.products || []));
+      
 
     fetch("/api/categories")
       .then((res) => res.json())
-      .then(setCategories);
+      .then((data) => setCategories(Array.isArray(data) ? data : data.categories || []));
   }, []);
 
   const updateURL = (params) => {
