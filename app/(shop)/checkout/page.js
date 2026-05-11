@@ -105,7 +105,7 @@ export default function CheckoutPage() {
       const { order } = await res.json();
 
       const options = {
-        key: "rzp_test_SnmXHpJYU99GAT",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: "INR",
         name: "Your Store",
