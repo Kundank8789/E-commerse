@@ -1,69 +1,62 @@
 import mongoose from "mongoose";
 
+const VariationSchema = new mongoose.Schema({
+  size: { type: String, required: true },
+  color: { type: String, required: true },
+  stock: { type: Number, default: 0 },
+}, { _id: false });
+
 const ProductSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
+    // Basic Information
+    name: { type: String, required: true },
+    slug: { type: String, unique: true, sparse: true },
+    sku: { type: String, unique: true, required: true },
+    description: { type: String, default: "" },
+    
+    // Pricing
+    price: { type: Number, required: true },
+    mrp: { type: Number, default: 0 },
+    tax: { type: Number, default: 0 },
+    shippingCost: { type: Number, default: 0 },
+    
+    // Stock Management
+    stock: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 10 },
+    lowStockWarning: { type: Number, default: 10 },
+    
+    // Order Limits
+    minOrderQuantity: { type: Number, default: 1 },
+    maxOrderQuantity: { type: Number, default: 5 },
+    
+    // Status
+    status: { 
+      type: String, 
+      enum: ['active', 'draft', 'archived'],
+      default: 'active'
     },
-
-    description: String,
-
-    // 💰 Pricing
-    price: {
-      type: Number,
-      required: true,
-    },
-
-    mrp: {
-      type: Number, // original price
-    },
-
-    tax: {
-      type: Number, // percentage
-      default: 0,
-    },
-
-    // 🖼️ Images
-    images: [String],
-
-    // 📦 Categories (MULTIPLE)
-    categories: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-      },
-    ],
-
-    // 🎨 Variants
-    colors: [String],
-    sizes: [String],
-
-    // 📏 Dimensions
-    weight: Number,
-    length: Number,
-    breadth: Number,
-    height: Number,
-
-    // 📦 Stock
-    stock: {
-      type: Number,
-      default: 0,
-    },
-
-    // 🚨 Low stock alert
-    lowStockThreshold: {
-      type: Number,
-      default: 20,
-    },
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+    
+    // Dimensions
+    weight: { type: Number, default: 0 },
+    length: { type: Number, default: 0 },
+    breadth: { type: Number, default: 0 },
+    height: { type: Number, default: 0 },
+    
+    // Attributes
+    colors: [{ type: String }],
+    sizes: [{ type: String }],
+    variations: [VariationSchema],
+    
+    // Media & Categories
+    images: [{ type: String }],
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    
+    // Legacy
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Product ||
-  mongoose.model("Product", ProductSchema);
+// NO MIDDLEWARE HERE - We'll handle slug/SKU generation in the API
+
+export default mongoose.models.Product || mongoose.model("Product", ProductSchema);
