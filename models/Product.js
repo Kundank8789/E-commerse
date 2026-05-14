@@ -4,6 +4,7 @@ const VariationSchema = new mongoose.Schema({
   size: { type: String, required: true },
   color: { type: String, required: true },
   stock: { type: Number, default: 0 },
+  price: { type: Number, default: 0 },
 }, { _id: false });
 
 const ProductSchema = new mongoose.Schema(
