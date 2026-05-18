@@ -6,45 +6,35 @@ import { useRouter } from "next/navigation";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
   const router = useRouter();
 
   const outerRef = useRef(null);
   const innerRef = useRef(null);
-
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const dragMoved = useRef(false);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then(setCategories);
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then(setProducts);
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const res = await fetch("/api/categories");
+    const data = await res.json();
+    console.log("Categories loaded:", data); // Debug: Check what data has image
+    setCategories(data);
+  };
 
   const loopedCategories = categories.length > 0
     ? [...categories, ...categories, ...categories]
     : [];
 
-  // Start scroll at middle copy
   useEffect(() => {
     if (!outerRef.current || loopedCategories.length === 0) return;
     const third = outerRef.current.scrollWidth / 3;
     outerRef.current.scrollLeft = third;
   }, [loopedCategories.length]);
-
-  const getCategoryImage = (categoryId) => {
-    const product = products.find(
-      (p) =>
-        p.category?._id === categoryId ||
-        p.categories?.some((c) => c._id === categoryId)
-    );
-    return product?.images?.[0] || "/placeholder.jpg";
-  };
 
   const resetScrollIfNeeded = () => {
     const el = outerRef.current;
@@ -110,7 +100,6 @@ export default function Categories() {
 
   return (
     <section className="bg-white text-black py-16">
-
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-5xl font-bold tracking-wide">
           SHOP BY CATEGORY
@@ -132,10 +121,13 @@ export default function Categories() {
       >
         <div ref={innerRef} className="animate-scroll flex gap-6 md:gap-10">
           {loopedCategories.map((cat, index) => {
-            const image = getCategoryImage(cat._id);
+            // Determine what to show: image > icon > default emoji
+            const hasImage = cat.image && cat.image !== "";
+            const displayIcon = cat.icon || "📦";
+            
             return (
               <div
-                key={index}
+                key={`${cat._id}-${index}`}
                 onClick={() => {
                   if (!dragMoved.current) {
                     router.push(`/products?category=${cat._id}`);
@@ -143,16 +135,22 @@ export default function Categories() {
                 }}
                 className="flex flex-col items-center cursor-pointer group shrink-0"
               >
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border border-gray-200 shadow-md">
-                  <Image
-                    src={image}
-                    alt={cat.name}
-                    width={300}
-                    height={300}
-                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                  />
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border border-gray-200 shadow-md bg-gray-100 flex items-center justify-center">
+                  {hasImage ? (
+                    // Show uploaded image
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                    />
+                  ) : (
+                    // Show emoji/icon
+                    <span className="text-6xl md:text-7xl group-hover:scale-110 transition duration-500">
+                      {displayIcon}
+                    </span>
+                  )}
                 </div>
-                <p className="mt-4 text-base md:text-lg font-medium text-center group-hover:text-yellow-600 transition">
+                <p className="mt-4 text-base md:text-lg font-medium text-center group-hover:text-yellow-600 transition capitalize">
                   {cat.name}
                 </p>
               </div>
@@ -161,6 +159,26 @@ export default function Categories() {
         </div>
       </div>
 
+      <style jsx>{`
+        .hide-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scroll {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.33%);
+          }
+        }
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+      `}</style>
     </section>
   );
 }
