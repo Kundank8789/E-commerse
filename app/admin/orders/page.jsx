@@ -31,7 +31,6 @@ export default function AdminOrders() {
     total: 0,
     pending: 0,
     confirmed: 0,
-    processing: 0,
     shipped: 0,
     delivered: 0,
     cancelled: 0,
@@ -70,7 +69,6 @@ export default function AdminOrders() {
       total: ordersData.length,
       pending: ordersData.filter(o => o.status === "pending").length,
       confirmed: ordersData.filter(o => o.status === "confirmed").length,
-      processing: ordersData.filter(o => o.status === "processing").length,
       shipped: ordersData.filter(o => o.status === "shipped").length,
       delivered: ordersData.filter(o => o.status === "delivered").length,
       cancelled: ordersData.filter(o => o.status === "cancelled").length,
@@ -245,7 +243,6 @@ export default function AdminOrders() {
   const statusColors = {
     pending: "bg-yellow-500/20 text-yellow-400",
     confirmed: "bg-blue-500/20 text-blue-400",
-    processing: "bg-purple-500/20 text-purple-400",
     shipped: "bg-indigo-500/20 text-indigo-400",
     delivered: "bg-green-500/20 text-green-400",
     cancelled: "bg-red-500/20 text-red-400",
@@ -337,13 +334,6 @@ export default function AdminOrders() {
           onClick={() => setStatusFilter("confirmed")}
         />
         <StatCard 
-          label="Processing" 
-          value={stats.processing} 
-          color="purple" 
-          icon="⚙️" 
-          onClick={() => setStatusFilter("processing")}
-        />
-        <StatCard 
           label="Shipped" 
           value={stats.shipped} 
           color="indigo" 
@@ -430,7 +420,6 @@ export default function AdminOrders() {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
-            <option value="processing">Processing</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
@@ -596,7 +585,6 @@ export default function AdminOrders() {
             >
               <option value="">Bulk Actions</option>
               <option value="confirmed">✅ Confirm Selected</option>
-              <option value="processing">⚙️ Mark as Processing</option>
               <option value="shipped">🚚 Mark as Shipped</option>
               <option value="delivered">🎉 Mark as Delivered</option>
               <option value="cancelled">❌ Cancel Selected</option>
@@ -696,7 +684,6 @@ export default function AdminOrders() {
                   >
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
-                    <option value="processing">Processing</option>
                     <option value="shipped">Shipped</option>
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
