@@ -1,25 +1,19 @@
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
+import User from "@/models/User"; // ✅ ADD THIS
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-// ✅ GET SINGLE ORDER (Optimized)
+// ✅ GET SINGLE ORDER
 export async function GET(req, context) {
   try {
-    // Set timeout for database operation
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Database timeout")), 8000);
-    });
-
-    await Promise.race([connectDB(), timeoutPromise]);
+    await connectDB();
 
     const { id } = await context.params;
 
     const order = await Order.findById(id)
       .populate("user", "name email")
-      .populate("items.product", "name images price")
-      .lean()
-      .maxTimeMS(5000);
+      .populate("items.product", "name images price");
 
     if (!order) {
       return NextResponse.json(
@@ -28,22 +22,10 @@ export async function GET(req, context) {
       );
     }
 
-    // Add cache headers
-    const headers = new Headers();
-    headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
-
-    return NextResponse.json(order, { headers });
+    return NextResponse.json(order);
 
   } catch (err) {
     console.error("GET ORDER ERROR:", err);
-    
-    if (err.message === "Database timeout") {
-      return NextResponse.json(
-        { error: "Request timeout", order: null },
-        { status: 200 }
-      );
-    }
-    
     return NextResponse.json(
       { error: err.message },
       { status: 500 }
@@ -51,7 +33,7 @@ export async function GET(req, context) {
   }
 }
 
-// 🔄 UPDATE ORDER STATUS & PAYMENT (Enhanced)
+// 🔄 UPDATE STATUS
 export async function PUT(req, context) {
   try {
     await connectDB();
@@ -68,24 +50,15 @@ export async function PUT(req, context) {
       );
     }
 
-    // ❌ Prevent cancel after shipped/delivered
+    // Prevent cancel after shipped/delivered
     if (status === "cancelled" && 
         (existing.status === "shipped" || existing.status === "delivered")) {
       return NextResponse.json(
-        { error: "Cannot cancel order after shipping" },
+        { error: "Cannot cancel after shipping" },
         { status: 400 }
       );
     }
 
-    // ✅ Prevent changing status of delivered orders
-    if (existing.status === "delivered" && status && status !== "delivered") {
-      return NextResponse.json(
-        { error: "Cannot modify delivered orders" },
-        { status: 400 }
-      );
-    }
-
-    // Build update object
     const updateData = {};
     if (status) updateData.status = status;
     if (paymentStatus) updateData.paymentStatus = paymentStatus;
@@ -93,7 +66,7 @@ export async function PUT(req, context) {
     const updated = await Order.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { new: true }
     )
     .populate("user", "name email")
     .populate("items.product", "name images price");
@@ -102,44 +75,6 @@ export async function PUT(req, context) {
 
   } catch (err) {
     console.error("UPDATE ORDER ERROR:", err);
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
-  }
-}
-
-// ❌ DELETE ORDER (Admin only)
-export async function DELETE(req, context) {
-  try {
-    await connectDB();
-
-    // Verify admin authentication
-    const token = req.cookies.get("token")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-    }
-
-    const { id } = await context.params;
-    
-    const deleted = await Order.findByIdAndDelete(id);
-
-    if (!deleted) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: "Order deleted successfully" 
-    });
-
-  } catch (err) {
-    console.error("DELETE ORDER ERROR:", err);
     return NextResponse.json(
       { error: err.message },
       { status: 500 }
