@@ -20,6 +20,7 @@ export default function AdminOrders() {
     endMonth: "" 
   });
   const [loading, setLoading] = useState(true);
+  const [bulkAction, setBulkAction] = useState(""); // For bulk dropdown
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -115,27 +116,33 @@ export default function AdminOrders() {
     }
   };
 
-  // Bulk confirm orders
-  const bulkConfirmOrders = async () => {
+  // ✅ BULK ACTION - Apply selected status to all selected orders
+  const applyBulkAction = async () => {
     if (selectedOrders.length === 0) {
       toast.error("No orders selected");
       return;
     }
     
-    toast.loading(`Confirming ${selectedOrders.length} orders...`);
+    if (!bulkAction) {
+      toast.error("Please select an action");
+      return;
+    }
+    
+    toast.loading(`Applying ${bulkAction} to ${selectedOrders.length} orders...`);
     
     for (const id of selectedOrders) {
       await fetch(`/api/orders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "confirmed" }),
+        body: JSON.stringify({ status: bulkAction }),
       });
     }
     
     toast.dismiss();
-    toast.success(`${selectedOrders.length} orders confirmed!`);
+    toast.success(`${selectedOrders.length} orders updated to ${bulkAction}!`);
     setSelectedOrders([]);
     setSelectAll(false);
+    setBulkAction("");
     fetchOrders();
   };
 
@@ -184,7 +191,7 @@ export default function AdminOrders() {
     toast.success("Orders exported!");
   };
 
-  // Get product image URL (fixed)
+  // Get product image URL
   const getProductImage = (product) => {
     if (!product) return null;
     if (product.images && product.images.length > 0 && product.images[0]) {
@@ -198,7 +205,6 @@ export default function AdminOrders() {
   useEffect(() => {
     let filtered = [...orders];
     
-    // Search by order ID or mobile number
     if (search) {
       filtered = filtered.filter(order => 
         order._id.includes(search) || 
@@ -207,17 +213,14 @@ export default function AdminOrders() {
       );
     }
     
-    // Status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     
-    // Payment filter
     if (paymentFilter !== "all") {
       filtered = filtered.filter(order => order.paymentMethod === paymentFilter);
     }
     
-    // Date range filter
     if (dateRange.start) {
       filtered = filtered.filter(order => new Date(order.createdAt) >= new Date(dateRange.start));
     }
@@ -226,7 +229,7 @@ export default function AdminOrders() {
     }
     
     setFilteredOrders(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [search, statusFilter, paymentFilter, dateRange, orders]);
 
   // Pagination
@@ -235,7 +238,6 @@ export default function AdminOrders() {
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
-  // ✅ OPTIMIZED: Only fetch once on mount, no auto-refresh
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -261,9 +263,11 @@ export default function AdminOrders() {
     toast.success(`${label} copied!`);
   };
 
-  // Stats Card Component
-  const StatCard = ({ label, value, color, icon }) => (
-    <div className={`bg-gray-800 rounded-xl p-3 border-l-4 border-${color}-500`}>
+  const StatCard = ({ label, value, color, icon, onClick }) => (
+    <div 
+      onClick={onClick}
+      className={`bg-gray-800 rounded-xl p-3 border-l-4 border-${color}-500 ${onClick ? 'cursor-pointer hover:bg-gray-700 transition' : ''}`}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400">{label}</p>
@@ -309,23 +313,89 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        <StatCard label="Total Orders" value={stats.total} color="blue" icon="📊" />
-        <StatCard label="Pending" value={stats.pending} color="yellow" icon="⏳" />
-        <StatCard label="Confirmed" value={stats.confirmed} color="blue" icon="✅" />
-        <StatCard label="Processing" value={stats.processing} color="purple" icon="⚙️" />
-        <StatCard label="Shipped" value={stats.shipped} color="indigo" icon="🚚" />
-        <StatCard label="Delivered" value={stats.delivered} color="green" icon="🎉" />
-        <StatCard label="Cancelled/RTO" value={stats.cancelled + stats.rto} color="red" icon="❌" />
+        <StatCard 
+          label="Total Orders" 
+          value={stats.total} 
+          color="blue" 
+          icon="📊" 
+          onClick={() => { setStatusFilter("all"); setSearch(""); }}
+        />
+        <StatCard 
+          label="Pending" 
+          value={stats.pending} 
+          color="yellow" 
+          icon="⏳" 
+          onClick={() => setStatusFilter("pending")}
+        />
+        <StatCard 
+          label="Confirmed" 
+          value={stats.confirmed} 
+          color="blue" 
+          icon="✅" 
+          onClick={() => setStatusFilter("confirmed")}
+        />
+        <StatCard 
+          label="Processing" 
+          value={stats.processing} 
+          color="purple" 
+          icon="⚙️" 
+          onClick={() => setStatusFilter("processing")}
+        />
+        <StatCard 
+          label="Shipped" 
+          value={stats.shipped} 
+          color="indigo" 
+          icon="🚚" 
+          onClick={() => setStatusFilter("shipped")}
+        />
+        <StatCard 
+          label="Delivered" 
+          value={stats.delivered} 
+          color="green" 
+          icon="🎉" 
+          onClick={() => setStatusFilter("delivered")}
+        />
+        <StatCard 
+          label="Cancelled/RTO" 
+          value={stats.cancelled + stats.rto} 
+          color="red" 
+          icon="❌" 
+          onClick={() => setStatusFilter("cancelled")}
+        />
       </div>
 
-      {/* Second Row Stats */}
+      {/* Second Row Stats - Clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatCard label="COD Orders" value={stats.cod} color="orange" icon="💰" />
-        <StatCard label="Prepaid" value={stats.prepaid} color="blue" icon="💳" />
-        <StatCard label="Paid" value={stats.paid} color="green" icon="✓" />
-        <StatCard label="Unpaid" value={stats.unpaid} color="red" icon="⚠️" />
+        <StatCard 
+          label="COD Orders" 
+          value={stats.cod} 
+          color="orange" 
+          icon="💰" 
+          onClick={() => setPaymentFilter("cod")}
+        />
+        <StatCard 
+          label="Prepaid" 
+          value={stats.prepaid} 
+          color="blue" 
+          icon="💳" 
+          onClick={() => setPaymentFilter("razorpay")}
+        />
+        <StatCard 
+          label="Paid" 
+          value={stats.paid} 
+          color="green" 
+          icon="✓" 
+          onClick={() => setPaymentFilter("all")}
+        />
+        <StatCard 
+          label="Unpaid" 
+          value={stats.unpaid} 
+          color="red" 
+          icon="⚠️" 
+          onClick={() => setPaymentFilter("all")}
+        />
       </div>
 
       {/* Items Per Page Selector */}
@@ -343,7 +413,6 @@ export default function AdminOrders() {
 
       {/* Search and Filters Bar */}
       <div className="bg-gray-800 rounded-xl p-4 mb-6">
-        {/* Row 1: Search, Status, Payment */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           <input
             type="text"
@@ -415,7 +484,7 @@ export default function AdminOrders() {
           </select>
         </div>
 
-        {/* Row 2: Month and Date Pickers */}
+        {/* Month and Date Pickers */}
         <div className="flex flex-wrap gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs text-gray-400 mb-1">From Date</label>
@@ -498,7 +567,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
+      {/* Bulk Actions Bar with Dropdown */}
       {currentOrders.length > 0 && (
         <div className="bg-gray-800 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -517,13 +586,29 @@ export default function AdminOrders() {
               </span>
             )}
           </div>
-          <div className="flex gap-2">
+          
+          <div className="flex items-center gap-2">
+            {/* ✅ Bulk Action Dropdown */}
+            <select
+              value={bulkAction}
+              onChange={(e) => setBulkAction(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white px-3 py-1.5 rounded-lg text-sm"
+            >
+              <option value="">Bulk Actions</option>
+              <option value="confirmed">✅ Confirm Selected</option>
+              <option value="processing">⚙️ Mark as Processing</option>
+              <option value="shipped">🚚 Mark as Shipped</option>
+              <option value="delivered">🎉 Mark as Delivered</option>
+              <option value="cancelled">❌ Cancel Selected</option>
+              <option value="rto">🔄 Mark as RTO</option>
+            </select>
+            
             <button
-              onClick={bulkConfirmOrders}
-              disabled={selectedOrders.length === 0}
+              onClick={applyBulkAction}
+              disabled={selectedOrders.length === 0 || !bulkAction}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-medium transition"
             >
-              ✅ Confirm Selected ({selectedOrders.length})
+              Apply to {selectedOrders.length} {selectedOrders.length === 1 ? 'order' : 'orders'}
             </button>
           </div>
         </div>
@@ -556,7 +641,6 @@ export default function AdminOrders() {
                     className="w-4 h-4 rounded border-gray-600 bg-gray-700"
                   />
 
-                  {/* Product Image - FIXED */}
                   <div className="flex-shrink-0">
                     {productImage ? (
                       <div className="relative w-11 h-11">
@@ -595,7 +679,7 @@ export default function AdminOrders() {
                   </span>
 
                   <span className={`text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ${paymentColors[order.paymentStatus] || paymentColors.pending}`}>
-                    {order.paymentStatus === "paid" ? "✓ PAID" : "⏳ UNPAID"}
+                    {order.paymentStatus === "paid" ? "✓ PAID" : "⏳ PENDING"}
                   </span>
 
                   <p className="font-bold text-white flex-shrink-0">₹{order.total}</p>
