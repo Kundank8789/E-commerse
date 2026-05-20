@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
-import User from "@/models/User";  // ✅ ADD THIS ONE LINE
+import User from "@/models/User";      // ✅ For user population
+import Product from "@/models/Product"; // ✅ For product population
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
@@ -49,9 +50,10 @@ export async function GET() {
     await connectDB();
 
     const orders = await Order.find()
-      .populate("user", "name email")  // This needs User model
-      .populate("items.product", "name images price")
-      .sort({ createdAt: -1 });
+      .populate("user", "name email")        // Needs User model
+      .populate("items.product", "name images price")  // Needs Product model
+      .sort({ createdAt: -1 })
+      .limit(100);
 
     return NextResponse.json(orders);
 
