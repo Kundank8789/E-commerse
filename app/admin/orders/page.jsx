@@ -20,7 +20,7 @@ export default function AdminOrders() {
     endMonth: "" 
   });
   const [loading, setLoading] = useState(true);
-  const [bulkAction, setBulkAction] = useState(""); // For bulk dropdown
+  const [bulkAction, setBulkAction] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,8 +37,6 @@ export default function AdminOrders() {
     rto: 0,
     cod: 0,
     prepaid: 0,
-    paid: 0,
-    unpaid: 0,
   });
 
   const fetchOrders = async () => {
@@ -75,8 +73,6 @@ export default function AdminOrders() {
       rto: ordersData.filter(o => o.status === "rto").length,
       cod: ordersData.filter(o => o.paymentMethod === "cod").length,
       prepaid: ordersData.filter(o => o.paymentMethod === "razorpay").length,
-      paid: ordersData.filter(o => o.paymentStatus === "paid").length,
-      unpaid: ordersData.filter(o => o.paymentStatus !== "paid").length,
     };
     setStats(newStats);
   };
@@ -114,7 +110,6 @@ export default function AdminOrders() {
     }
   };
 
-  // ✅ BULK ACTION - Apply selected status to all selected orders
   const applyBulkAction = async () => {
     if (selectedOrders.length === 0) {
       toast.error("No orders selected");
@@ -144,7 +139,6 @@ export default function AdminOrders() {
     fetchOrders();
   };
 
-  // Select all orders
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedOrders([]);
@@ -154,7 +148,6 @@ export default function AdminOrders() {
     setSelectAll(!selectAll);
   };
 
-  // Handle single order selection
   const handleSelectOrder = (id) => {
     if (selectedOrders.includes(id)) {
       setSelectedOrders(selectedOrders.filter(o => o !== id));
@@ -163,9 +156,8 @@ export default function AdminOrders() {
     }
   };
 
-  // Download orders as CSV
   const downloadOrdersCSV = () => {
-    const headers = ["Order ID", "Date", "Customer", "Mobile", "Total", "Payment Method", "Payment Status", "Status", "Items"];
+    const headers = ["Order ID", "Date", "Customer", "Mobile", "Total", "Payment Method", "Status", "Items"];
     const rows = filteredOrders.map(order => [
       order._id.slice(-8),
       new Date(order.createdAt).toLocaleDateString(),
@@ -173,7 +165,6 @@ export default function AdminOrders() {
       order.address?.phone,
       order.total,
       order.paymentMethod?.toUpperCase(),
-      order.paymentStatus,
       order.status,
       order.items?.length || 0,
     ]);
@@ -189,7 +180,6 @@ export default function AdminOrders() {
     toast.success("Orders exported!");
   };
 
-  // Get product image URL
   const getProductImage = (product) => {
     if (!product) return null;
     if (product.images && product.images.length > 0 && product.images[0]) {
@@ -199,7 +189,6 @@ export default function AdminOrders() {
     return null;
   };
 
-  // Search and filter
   useEffect(() => {
     let filtered = [...orders];
     
@@ -230,7 +219,6 @@ export default function AdminOrders() {
     setCurrentPage(1);
   }, [search, statusFilter, paymentFilter, dateRange, orders]);
 
-  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
@@ -268,7 +256,7 @@ export default function AdminOrders() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400">{label}</p>
-          <p className="text-xl font-bold text-white">{value}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
@@ -310,8 +298,8 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Stats Cards - Clickable */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+      {/* Stats Cards - Row 1: Order Status */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <StatCard 
           label="Total Orders" 
           value={stats.total} 
@@ -348,16 +336,23 @@ export default function AdminOrders() {
           onClick={() => setStatusFilter("delivered")}
         />
         <StatCard 
-          label="Cancelled/RTO" 
-          value={stats.cancelled + stats.rto} 
+          label="Cancelled" 
+          value={stats.cancelled} 
           color="red" 
           icon="❌" 
           onClick={() => setStatusFilter("cancelled")}
         />
       </div>
 
-      {/* Second Row Stats - Clickable */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* Stats Cards - Row 2: RTO & Payment Methods */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        <StatCard 
+          label="RTO (Return to Origin)" 
+          value={stats.rto} 
+          color="orange" 
+          icon="🔄" 
+          onClick={() => setStatusFilter("rto")}
+        />
         <StatCard 
           label="COD Orders" 
           value={stats.cod} 
@@ -366,25 +361,11 @@ export default function AdminOrders() {
           onClick={() => setPaymentFilter("cod")}
         />
         <StatCard 
-          label="Prepaid" 
+          label="Prepaid Orders" 
           value={stats.prepaid} 
-          color="blue" 
+          color="purple" 
           icon="💳" 
           onClick={() => setPaymentFilter("razorpay")}
-        />
-        <StatCard 
-          label="Paid" 
-          value={stats.paid} 
-          color="green" 
-          icon="✓" 
-          onClick={() => setPaymentFilter("all")}
-        />
-        <StatCard 
-          label="Unpaid" 
-          value={stats.unpaid} 
-          color="red" 
-          icon="⚠️" 
-          onClick={() => setPaymentFilter("all")}
         />
       </div>
 
@@ -556,7 +537,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar with Dropdown */}
+      {/* Bulk Actions Bar */}
       {currentOrders.length > 0 && (
         <div className="bg-gray-800 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -577,7 +558,6 @@ export default function AdminOrders() {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* ✅ Bulk Action Dropdown */}
             <select
               value={bulkAction}
               onChange={(e) => setBulkAction(e.target.value)}
@@ -664,10 +644,6 @@ export default function AdminOrders() {
                     order.paymentMethod === "razorpay" ? "bg-purple-500/20 text-purple-400" : "bg-orange-500/20 text-orange-400"
                   }`}>
                     {order.paymentMethod === "razorpay" ? "💳 PREPAID" : "💰 COD"}
-                  </span>
-
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ${paymentColors[order.paymentStatus] || paymentColors.pending}`}>
-                    {order.paymentStatus === "paid" ? "✓ PAID" : "⏳ PENDING"}
                   </span>
 
                   <p className="font-bold text-white flex-shrink-0">₹{order.total}</p>
