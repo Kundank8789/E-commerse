@@ -26,87 +26,105 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch orders
-      const ordersRes = await fetch("/api/orders", { credentials: "include" });
-      const orders = await ordersRes.json();
-      
-      // Fetch products
-      const productsRes = await fetch("/api/products", { credentials: "include" });
-      const products = await productsRes.json();
-      
-      // Fetch users
-      const usersRes = await fetch("/api/users", { credentials: "include" });
-      const users = await usersRes.json();
-      
-      // Calculate dashboard metrics
-      const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-      const totalOrders = orders.length;
-      const totalUsers = users.length;
-      const totalProducts = products.length;
-      const pendingOrders = orders.filter(o => o.status === "pending").length;
-      const lowStockProducts = products.filter(p => p.stock < 10).length;
-      
-      // Today's orders
-      const today = new Date().toDateString();
-      const todayOrders = orders.filter(order => 
-        new Date(order.createdAt).toDateString() === today
-      ).length;
-      
-      // This month's sales
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const thisMonthSales = orders
-        .filter(order => {
-          const orderDate = new Date(order.createdAt);
-          return orderDate.getMonth() === currentMonth && 
-                 orderDate.getFullYear() === currentYear;
-        })
-        .reduce((sum, order) => sum + (order.total || 0), 0);
-      
-      setDashboardData({
-        totalSales,
-        totalOrders,
-        totalUsers,
-        totalProducts,
-        pendingOrders,
-        lowStockProducts,
-        todayOrders,
-        thisMonthSales,
-      });
-      
-      // Recent orders (last 5)
-      setRecentOrders(orders.slice(0, 5));
-      
-      // Top products by sales
-      const productSales = {};
-      orders.forEach(order => {
-        order.items?.forEach(item => {
-          const productId = item.product?._id;
-          if (productId) {
-            productSales[productId] = (productSales[productId] || 0) + item.quantity;
-          }
-        });
-      });
-      
-      const topProductsList = products
-        .map(product => ({
-          ...product,
-          salesCount: productSales[product._id] || 0
-        }))
-        .sort((a, b) => b.salesCount - a.salesCount)
-        .slice(0, 5);
-      
-      setTopProducts(topProductsList);
-      setLoading(false);
-      
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
-      setLoading(false);
+ const fetchDashboardData = async () => {
+  try {
+    // Fetch orders with validation
+    const ordersRes = await fetch("/api/orders", { credentials: "include" });
+    let orders = [];
+    if (ordersRes.ok) {
+      const ordersData = await ordersRes.json();
+      orders = Array.isArray(ordersData) ? ordersData : [];
     }
-  };
-
+    
+    // Fetch products with validation
+    const productsRes = await fetch("/api/products", { credentials: "include" });
+    let products = [];
+    if (productsRes.ok) {
+      const productsData = await productsRes.json();
+      products = Array.isArray(productsData) ? productsData : [];
+    }
+    
+    // Fetch users with validation
+    let users = [];
+    try {
+      const usersRes = await fetch("/api/admin/users", { credentials: "include" });
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        users = Array.isArray(usersData) ? usersData : [];
+      }
+    } catch (err) {
+      console.log("Users API not available");
+    }
+    
+    // Calculate dashboard metrics (safe with empty arrays)
+    const totalSales = orders.length > 0 
+      ? orders.reduce((sum, order) => sum + (order.total || 0), 0)
+      : 0;
+    
+    const totalOrders = orders.length;
+    const totalUsers = users.length;
+    const totalProducts = products.length;
+    const pendingOrders = orders.filter(o => o.status === "pending").length;
+    const lowStockProducts = products.filter(p => p.stock < 10).length;
+    
+    // Today's orders
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(order => 
+      new Date(order.createdAt).toDateString() === today
+    ).length;
+    
+    // This month's sales
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const thisMonthSales = orders
+      .filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate.getMonth() === currentMonth && 
+               orderDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, order) => sum + (order.total || 0), 0);
+    
+    setDashboardData({
+      totalSales,
+      totalOrders,
+      totalUsers,
+      totalProducts,
+      pendingOrders,
+      lowStockProducts,
+      todayOrders,
+      thisMonthSales,
+    });
+    
+    // Recent orders (last 5)
+    setRecentOrders(orders.slice(0, 5));
+    
+    // Top products by sales
+    const productSales = {};
+    orders.forEach(order => {
+      order.items?.forEach(item => {
+        const productId = item.product?._id;
+        if (productId) {
+          productSales[productId] = (productSales[productId] || 0) + item.quantity;
+        }
+      });
+    });
+    
+    const topProductsList = products
+      .map(product => ({
+        ...product,
+        salesCount: productSales[product._id] || 0
+      }))
+      .sort((a, b) => b.salesCount - a.salesCount)
+      .slice(0, 5);
+    
+    setTopProducts(topProductsList);
+    setLoading(false);
+    
+  } catch (error) {
+    console.error("Dashboard fetch error:", error);
+    setLoading(false);
+  }
+};
   const StatCard = ({ title, value, icon, color, link, trend, trendValue }) => (
     <Link href={link} className="block">
       <div className={`bg-gray-800 rounded-xl p-6 border-l-4 border-${color}-500 hover:bg-gray-750 transition cursor-pointer`}>
