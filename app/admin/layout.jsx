@@ -10,13 +10,16 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Public routes that don't require authentication
+  const publicRoutes = ["/admin/login", "/admin/register"];
+
   useEffect(() => {
     checkAuth();
   }, [pathname]);
 
   const checkAuth = async () => {
-    // Skip auth check for login page
-    if (pathname === "/admin/login") {
+    // Allow access to public routes without auth check
+    if (publicRoutes.includes(pathname)) {
       setLoading(false);
       return;
     }
@@ -51,8 +54,8 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  // Show login page without sidebar
-  if (pathname === "/admin/login") {
+  // Show login/register pages without sidebar
+  if (publicRoutes.includes(pathname)) {
     return <>{children}</>;
   }
 

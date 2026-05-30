@@ -13,7 +13,6 @@ export async function GET(req) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
     
-    // Verify user still exists in database
     await connectDB();
     const user = await User.findById(decoded.id).select("-password");
     
@@ -26,6 +25,7 @@ export async function GET(req) {
     }
     
     return NextResponse.json({ success: true, user });
+    
   } catch (error) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
