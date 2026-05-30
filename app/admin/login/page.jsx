@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -53,7 +54,7 @@ export default function AdminLogin() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              placeholder="admin@gmail.com"
+              placeholder="admin@example.com"
             />
           </div>
 
@@ -78,9 +79,13 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="mt-4 text-center text-xs text-gray-500">
-          <p>Demo Credentials:</p>
-          <p>Email: admin@gmail.com | Password: 123456</p>
+        <div className="text-center mt-4">
+          <p className="text-gray-400 text-sm">
+            Don't have an account?{" "}
+            <Link href="/admin/register" className="text-yellow-500 hover:text-yellow-400">
+              Register here
+            </Link>
+          </p>
         </div>
       </div>
     </div>

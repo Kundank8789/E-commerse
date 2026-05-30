@@ -8,10 +8,9 @@ export async function POST(req) {
   try {
     await connectDB();
     const { email, password } = await req.json();
-
-    // Find user by email
-    const user = await User.findOne({ email });
     
+    // Find user
+    const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
@@ -22,12 +21,12 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
     
-    // Check if user is admin
+    // Check if admin
     if (user.role !== "admin") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
     
-    // Create token
+    // Generate token
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role, name: user.name },
       process.env.JWT_SECRET || "SECRET_KEY",
