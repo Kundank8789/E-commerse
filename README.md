@@ -1,4 +1,5 @@
 # 🚀 Project Name
+E-Commerse
 
 A modern, scalable, and high-performance web application built with **Next.js 15**, **React**, **TypeScript**, and **Tailwind CSS**.
 
