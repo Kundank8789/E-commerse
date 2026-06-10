@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { FaShoppingBag, FaHeart, FaUserCircle } from "react-icons/fa";
 import { FiMenu, FiX, FiSearch, FiLogOut, FiEdit2 } from "react-icons/fi";
@@ -15,7 +14,6 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // ✅ separate refs for desktop and mobile
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
 
@@ -23,12 +21,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname?.startsWith("/admin")) return null;
 
-  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const totalItems = cart?.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
 
-  // ── Fetch user ───────────────────────────────────
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -46,7 +43,6 @@ export default function Navbar() {
     fetchUser();
   }, [pathname]);
 
-  // ── Close dropdown on outside click ─────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       const clickedOutsideDesktop =
@@ -64,7 +60,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ── Logout ───────────────────────────────────────
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST", credentials: "include" });
     setUser(null);
@@ -72,7 +67,6 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  // ── Search ───────────────────────────────────────
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -82,16 +76,12 @@ export default function Navbar() {
     }
   };
 
-  // ── Dropdown JSX (reused for desktop + mobile) ──
   const DropdownMenu = () => (
     <div className="w-48 bg-white text-black rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[999]">
-      {/* User Info */}
       <div className="px-4 py-3 border-b border-gray-100">
         <p className="font-semibold text-sm truncate">{user?.name}</p>
         <p className="text-xs text-gray-400 truncate">{user?.email}</p>
       </div>
-
-      {/* Edit Profile */}
       <button
         onClick={() => { router.push("/account"); setDropdownOpen(false); }}
         className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50 transition text-left"
@@ -99,8 +89,6 @@ export default function Navbar() {
         <FiEdit2 size={15} className="text-gray-500" />
         Edit Profile
       </button>
-
-      {/* Logout */}
       <button
         onClick={handleLogout}
         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition text-left"
@@ -113,14 +101,19 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-black text-white border-b border-white/10">
-
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
 
-        {/* LEFT: Logo + Desktop Search */}
-        <div className="flex items-center gap-4 flex-1">
-          <Link href="/">
-            <Image src="/newlogo.png" alt="Logo" width={100} height={40} className="object-contain" />
-          </Link>
+        {/* LEFT: Logo */}
+        <Link href="/" className="group shrink-0">
+          <div className="flex items-baseline">
+            <span className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-white via-yellow-400 to-white bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
+              NIWLE
+            </span>
+          </div>
+        </Link>
+
+        {/* Search Bar - Centered with auto margins */}
+        <div className="flex-1 flex justify-center">
           <form
             onSubmit={handleSearch}
             className="hidden md:flex items-center bg-white rounded-full px-4 py-2 w-[350px] border border-gray-300 focus-within:border-yellow-400"
@@ -155,7 +148,6 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* ✅ DESKTOP USER SECTION */}
           {user ? (
             <div className="relative" ref={desktopDropdownRef}>
               <button
@@ -168,7 +160,6 @@ export default function Navbar() {
                 <span className="max-w-[80px] truncate">{user.name}</span>
               </button>
 
-              {/* ✅ Desktop Dropdown */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2">
                   <DropdownMenu />
@@ -177,7 +168,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/login">
-              <button className="bg-white text-black px-4 py-2 rounded-full hover:text-yellow-400 transition text-sm">
+              <button className="bg-white text-black px-4 py-2 rounded-full hover:bg-yellow-400 hover:text-black transition text-sm">
                 Login
               </button>
             </Link>
@@ -199,7 +190,6 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* ✅ Mobile Avatar */}
           {user ? (
             <button
               onClick={() => setDropdownOpen((prev) => !prev)}
@@ -240,7 +230,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* ✅ MOBILE DROPDOWN — fixed positioning */}
+      {/* MOBILE DROPDOWN */}
       {dropdownOpen && user && (
         <div
           ref={mobileDropdownRef}
@@ -276,7 +266,6 @@ export default function Navbar() {
           )}
         </div>
       )}
-
     </nav>
   );
 }
