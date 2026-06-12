@@ -45,7 +45,7 @@ export default function Footer() {
             <div className="mt-4 space-y-2">
               <p className="text-gray-400 text-sm">📍 India</p>
               <p className="text-gray-400 text-sm">📞 +91 12345 67890</p>
-              <p className="text-gray-400 text-sm">✉️ support@niwle.com</p>
+              <p className="text-gray-400 text-sm">✉️ niwleofficial@gmail.com</p>
             </div>
           </div>
 
