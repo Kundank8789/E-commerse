@@ -45,7 +45,13 @@ export default function Footer() {
             <div className="mt-4 space-y-2">
               <p className="text-gray-400 text-sm">📍 India</p>
               <p className="text-gray-400 text-sm">📞 +91 12345 67890</p>
-              <p className="text-gray-400 text-sm">✉️ niwleofficial@gmail.com</p>
+              {/* ✅ Clickable Email */}
+              <a 
+                href="mailto:niwleofficial@gmail.com" 
+                className="text-gray-400 text-sm hover:text-yellow-500 transition flex items-center gap-2"
+              >
+                ✉️ niwleofficial@gmail.com
+              </a>
             </div>
           </div>
 
@@ -112,14 +118,38 @@ export default function Footer() {
             </div>
             <p className="text-yellow-500 text-xs mt-2">🎉 Get 10% Off on your first order!</p>
             
-            {/* Social Media */}
+            {/* ✅ Clickable Social Media Links */}
             <div className="mt-4">
               <h3 className="text-sm font-semibold mb-2">SOCIAL MEDIA</h3>
-              <div className="flex gap-4">
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition text-sm">Facebook</a>
-                <a href="#" className="text-gray-400 hover:text-pink-600 transition text-sm">Instagram</a>
-                <a href="#" className="text-gray-400 hover:text-red-600 transition text-sm">Pinterest</a>
-                <a href="#" className="text-gray-400 hover:text-red-700 transition text-sm">YouTube</a>
+              <div className="flex flex-wrap gap-4">
+                <a 
+                  href="https://www.facebook.com/share/14kPVf5fye1/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-600 transition text-sm"
+                >
+                  Facebook
+                </a>
+                <a 
+                  href="https://www.instagram.com/niwleofficial" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-pink-600 transition text-sm"
+                >
+                  Instagram
+                </a>
+                <a 
+                  href="#" 
+                  className="text-gray-400 hover:text-red-600 transition text-sm"
+                >
+                  Pinterest
+                </a>
+                <a 
+                  href="#" 
+                  className="text-gray-400 hover:text-red-700 transition text-sm"
+                >
+                  YouTube
+                </a>
               </div>
             </div>
           </div>
