@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { usePathname } from "next/navigation";
+import { FaFacebook, FaInstagram, FaPinterest, FaYoutube } from "react-icons/fa";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -30,6 +31,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-black text-white">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Main Grid - 5 Columns */}
@@ -44,8 +46,7 @@ export default function Footer() {
             </p>
             <div className="mt-4 space-y-2">
               <p className="text-gray-400 text-sm">📍 India</p>
-              <p className="text-gray-400 text-sm">📞 +91 12345 67890</p>
-              {/* ✅ Clickable Email */}
+              <p className="text-gray-400 text-sm">📞 +91 8826305153</p>
               <a 
                 href="mailto:niwleofficial@gmail.com" 
                 className="text-gray-400 text-sm hover:text-yellow-500 transition flex items-center gap-2"
@@ -118,60 +119,44 @@ export default function Footer() {
             </div>
             <p className="text-yellow-500 text-xs mt-2">🎉 Get 10% Off on your first order!</p>
             
-            {/* ✅ Clickable Social Media Links */}
+            {/* Social Media with Icons - Updated Links */}
             <div className="mt-4">
-              <h3 className="text-sm font-semibold mb-2">SOCIAL MEDIA</h3>
-              <div className="flex flex-wrap gap-4">
+              <h3 className="text-sm font-semibold mb-2">FOLLOW US</h3>
+              <div className="flex gap-4">
                 <a 
                   href="https://www.facebook.com/share/14kPVf5fye1/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-600 transition text-sm"
+                  className="text-gray-400 hover:text-blue-600 transition text-2xl"
                 >
-                  Facebook
+                  <FaFacebook />
                 </a>
                 <a 
                   href="https://www.instagram.com/niwleofficial" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-pink-600 transition text-sm"
+                  className="text-gray-400 hover:text-pink-600 transition text-2xl"
                 >
-                  Instagram
+                  <FaInstagram />
                 </a>
                 <a 
-                  href="#" 
-                  className="text-gray-400 hover:text-red-600 transition text-sm"
+                  href="https://pin.it/5aPQFeQ8o" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-red-600 transition text-2xl"
                 >
-                  Pinterest
+                  <FaPinterest />
                 </a>
                 <a 
-                  href="#" 
-                  className="text-gray-400 hover:text-red-700 transition text-sm"
+                  href="https://www.youtube.com/@niwleofficial" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-red-700 transition text-2xl"
                 >
-                  YouTube
+                  <FaYoutube />
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Features Section - 4 columns */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center mt-12 pt-8 border-t border-gray-800">
-          <div>
-            <p className="text-yellow-500 text-base font-semibold">FREE SHIPPING</p>
-            <p className="text-gray-500 text-xs">On all orders above ₹499</p>
-          </div>
-          <div>
-            <p className="text-yellow-500 text-base font-semibold">EASY RETURNS</p>
-            <p className="text-gray-500 text-xs">14 days return policy</p>
-          </div>
-          <div>
-            <p className="text-yellow-500 text-base font-semibold">SECURE PAYMENT</p>
-            <p className="text-gray-500 text-xs">100% secure payment</p>
-          </div>
-          <div>
-            <p className="text-yellow-500 text-base font-semibold">24/7 SUPPORT</p>
-            <p className="text-gray-500 text-xs">We're here to help you</p>
           </div>
         </div>
 
