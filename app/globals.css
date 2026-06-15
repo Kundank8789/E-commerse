@@ -76,3 +76,13 @@ html {
 .hide-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* Add to your global.css */
+.gold-star {
+  color: #fbbf24;
+  fill: #fbbf24;
+}
+.gray-star {
+  color: #d1d5db;
+  fill: #d1d5db;
+}
