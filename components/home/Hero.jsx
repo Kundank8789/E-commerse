@@ -18,7 +18,7 @@ export default function Hero() {
       subtitle: "Up to 50% off on selected collections",
     },
     {
-      image: "/shoes.jpg",
+      image: "/banner.png",
       title: "Step Into Style",
       subtitle: "Modern designs for everyday confidence",
     },
