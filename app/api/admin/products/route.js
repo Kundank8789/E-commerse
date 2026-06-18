@@ -13,7 +13,6 @@ async function generateUniqueSlug(name, existingId = null) {
   let slug = baseSlug;
   let counter = 1;
   
-  // Check if slug exists
   let existingProduct = await Product.findOne({ slug });
   while (existingProduct && (existingId ? existingProduct._id.toString() !== existingId : true)) {
     slug = `${baseSlug}-${counter}`;
@@ -24,33 +23,33 @@ async function generateUniqueSlug(name, existingId = null) {
   return slug;
 }
 
-// Helper function to generate unique SKU
 function generateSKU() {
   const timestamp = Date.now().toString().slice(-6);
   const random = Math.floor(Math.random() * 10000);
   return `SKU-${timestamp}-${random}`;
 }
 
-// ✅ GET products - ONLY ACTIVE for public
+// ✅ ADMIN API - Returns ALL products (active, draft, archived)
 export async function GET(req) {
   try {
     await connectDB();
     
-    // Check if it's an admin request (optional)
-    const url = new URL(req.url);
-    const isAdmin = url.searchParams.get("admin") === "true";
-    
-    // ✅ Public: Only show active products
-    // Admin: Show all products
-    const query = isAdmin ? {} : { status: "active" };
-    
-    const products = await Product.find(query)
+    // ✅ FIXED: Return ALL products - NO status filter
+    const products = await Product.find({})
       .populate("categories")
       .sort({ createdAt: -1 });
-      
+    
+    console.log(`📦 Admin API: Returning ${products.length} products`);
+    console.log("📊 Status breakdown:", {
+      total: products.length,
+      active: products.filter(p => p.status === 'active').length,
+      draft: products.filter(p => p.status === 'draft').length,
+      archived: products.filter(p => p.status === 'archived').length,
+    });
+    
     return NextResponse.json(products);
   } catch (error) {
-    console.error("GET ERROR:", error);
+    console.error("ADMIN GET ERROR:", error);
     return NextResponse.json(
       { error: "Failed to fetch products" },
       { status: 500 }
@@ -63,9 +62,8 @@ export async function POST(req) {
     await connectDB();
     const body = await req.json();
 
-    console.log("Received body:", body);
+    console.log("📝 Creating product:", body.name);
 
-    // Validate required fields
     if (!body.name) {
       return NextResponse.json(
         { error: "Product name is required" },
@@ -90,7 +88,6 @@ export async function POST(req) {
       );
     }
 
-    // Validate stock vs max quantity
     const stock = Number(body.stock) || 0;
     if (stock > 0 && maxQty > stock) {
       return NextResponse.json(
@@ -128,10 +125,8 @@ export async function POST(req) {
       }
     }
 
-    // ✅ Handle status - draft products won't show on frontend
     const status = body.status || "active";
 
-    // Prepare product data
     const productData = {
       name: body.name,
       slug: slug,
@@ -146,7 +141,7 @@ export async function POST(req) {
       shippingCost: Number(body.shippingCost) || 0,
       minOrderQuantity: minQty,
       maxOrderQuantity: maxQty,
-      status: status, // ✅ Draft won't show on frontend
+      status: status,
       weight: body.weight ? Number(body.weight) : 0,
       length: body.length ? Number(body.length) : 0,
       breadth: body.breadth ? Number(body.breadth) : 0,
@@ -162,7 +157,7 @@ export async function POST(req) {
     console.log("Creating product with:", productData);
 
     const product = await Product.create(productData);
-    console.log("Product created successfully:", product._id);
+    console.log("✅ Product created:", product._id, "Status:", product.status);
 
     return NextResponse.json({ 
       success: true, 

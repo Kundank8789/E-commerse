@@ -1,12 +1,24 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
 
-// ✅ GET SINGLE PRODUCT
+// ✅ GET SINGLE PRODUCT - Only shows if active (or admin request)
 export async function GET(req, context) {
   try {
     await connectDB();
     const { id } = await context.params;
-    const product = await Product.findById(id).populate("categories");
+    
+    // Check if it's an admin request
+    const url = new URL(req.url);
+    const isAdmin = url.searchParams.get("admin") === "true";
+    
+    // Build query
+    const query = { _id: id };
+    if (!isAdmin) {
+      query.status = "active"; // ✅ Only show active products to public
+    }
+    
+    const product = await Product.findOne(query).populate("categories");
 
     if (!product) {
       return Response.json(
@@ -52,7 +64,7 @@ export async function DELETE(req, context) {
   }
 }
 
-// ✅ UPDATE PRODUCT (UPDATED with validations)
+// ✅ UPDATE PRODUCT (with Draft support)
 export async function PUT(req, context) {
   try {
     await connectDB();
@@ -108,12 +120,21 @@ export async function PUT(req, context) {
       }
     }
 
-    // Validate min/max quantity
+    // ✅ Validate min/max quantity
     const minQty = parseInt(body.minOrderQuantity) || 1;
     const maxQty = parseInt(body.maxOrderQuantity) || 5;
     if (minQty > maxQty) {
       return Response.json(
         { error: "Minimum quantity cannot be greater than maximum quantity" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Validate stock vs max quantity
+    const stock = parseInt(body.stock) || 0;
+    if (stock > 0 && maxQty > stock) {
+      return Response.json(
+        { error: `Maximum order quantity (${maxQty}) cannot exceed available stock (${stock})` },
         { status: 400 }
       );
     }
@@ -127,13 +148,13 @@ export async function PUT(req, context) {
       price: parseFloat(body.price),
       mrp: body.mrp ? parseFloat(body.mrp) : null,
       tax: parseFloat(body.tax) || 0,
-      stock: parseInt(body.stock) || 0,
+      stock: stock,
       lowStockThreshold: parseInt(body.lowStockThreshold) || 10,
       lowStockWarning: parseInt(body.lowStockWarning) || 10,
       shippingCost: parseFloat(body.shippingCost) || 0,
       minOrderQuantity: minQty,
       maxOrderQuantity: maxQty,
-      status: body.status || "active",
+      status: body.status || "active", // ✅ Draft/Active/Archived
       weight: body.weight ? parseFloat(body.weight) : null,
       length: body.length ? parseFloat(body.length) : null,
       breadth: body.breadth ? parseFloat(body.breadth) : null,

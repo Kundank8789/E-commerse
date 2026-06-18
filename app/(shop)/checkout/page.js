@@ -10,7 +10,7 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, getCartTotal, getShippingCost } = useCart();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,12 +22,27 @@ export default function CheckoutPage() {
     city: "", state: "", pincode: "", addressLine: "",
   });
 
-  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  // ✅ Calculate totals using cart context functions
+  const subtotal = getCartTotal();
+  const shippingCost = getShippingCost();
+  const total = subtotal + shippingCost;
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        if (cart.length === 0) { router.push("/cart"); return; }
+        if (cart.length === 0) { 
+          router.push("/cart"); 
+          return; 
+        }
+        
+        // ✅ Validate stock before checkout
+        const outOfStockItems = cart.filter(item => item.stock === 0);
+        if (outOfStockItems.length > 0) {
+          toast.error(`Some items are out of stock: ${outOfStockItems.map(i => i.name).join(', ')}`);
+          router.push("/cart");
+          return;
+        }
+        
         const res = await fetch("/api/auth/me", { credentials: "include" });
         if (!res.ok) { router.push("/login?redirect=/checkout"); return; }
         const data = await res.json();
@@ -53,9 +68,32 @@ export default function CheckoutPage() {
     return true;
   };
 
+  // ✅ Validate stock before placing order
+  const validateStockBeforeOrder = () => {
+    const outOfStockItems = cart.filter(item => item.stock === 0);
+    if (outOfStockItems.length > 0) {
+      toast.error(`Out of stock: ${outOfStockItems.map(i => i.name).join(', ')}`);
+      return false;
+    }
+    
+    // Check if quantity exceeds available stock
+    const exceededStock = cart.filter(item => item.quantity > item.stock);
+    if (exceededStock.length > 0) {
+      toast.error(`Quantity exceeds stock for: ${exceededStock.map(i => i.name).join(', ')}`);
+      return false;
+    }
+    
+    return true;
+  };
+
   const orderPayload = {
-    items: cart.map((item) => ({ product: item._id || item.id, quantity: item.quantity })),
-    total,
+    items: cart.map((item) => ({ 
+      product: item._id || item.id, 
+      quantity: item.quantity 
+    })),
+    subtotal: subtotal,
+    shippingCost: shippingCost,
+    total: total,
     address: { ...address, phone: customerPhone, name: customerName },
   };
 
@@ -70,19 +108,26 @@ export default function CheckoutPage() {
 
   // ── COD Flow ────────────────────────────────────
   const handleCOD = async () => {
+    if (!validateStockBeforeOrder()) return;
+    
     try {
       setPlacing(true);
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...orderPayload, paymentMethod: "cod", paymentStatus: "pending" }),
+        body: JSON.stringify({ 
+          ...orderPayload, 
+          paymentMethod: "cod", 
+          paymentStatus: "pending" 
+        }),
       });
       if (!res.ok) throw new Error("Order failed");
       const order = await res.json();
       toast.success("Order placed successfully 🎉");
       clearCart();
       setTimeout(() => router.push(`/order-success?orderId=${order._id}`), 1500);
-    } catch {
+    } catch (error) {
+      console.error("COD Error:", error);
       toast.error("Failed to place order");
     } finally {
       setPlacing(false);
@@ -91,11 +136,12 @@ export default function CheckoutPage() {
 
   // ── Razorpay Flow ────────────────────────────────
   const handleRazorpay = async () => {
+    if (!validateStockBeforeOrder()) return;
+    
     try {
       setPlacing(true);
       const loaded = await loadRazorpay();
       if (!loaded) { toast.error("Razorpay failed to load"); return; }
-      console.log("RAZORPAY KEY:", process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
 
       const res = await fetch("/api/payment/create-order", {
         method: "POST",
@@ -108,7 +154,7 @@ export default function CheckoutPage() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: "INR",
-        name: "Your Store",
+        name: "NIWLE",
         description: "Order Payment",
         order_id: order.id,
         handler: async (response) => {
@@ -130,14 +176,10 @@ export default function CheckoutPage() {
         theme: { color: "#000000" },
       };
 
-      console.log("OPTIONS:", options);
-      console.log("ORDER ID:", order.id);
-      console.log("AMOUNT:", order.amount);
-
-
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch {
+    } catch (error) {
+      console.error("Razorpay Error:", error);
       toast.error("Payment failed");
     } finally {
       setPlacing(false);
@@ -146,6 +188,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = () => {
     if (!isFormValid()) return;
+    if (!validateStockBeforeOrder()) return;
     paymentMethod === "cod" ? handleCOD() : handleRazorpay();
   };
 
@@ -178,11 +221,17 @@ export default function CheckoutPage() {
 
           {/* RIGHT */}
           <OrderSummary
-            cart={cart} total={total}
-            customerName={customerName} customerPhone={customerPhone}
+            cart={cart} 
+            subtotal={subtotal}
+            shippingCost={shippingCost}
+            total={total}
+            customerName={customerName} 
+            customerPhone={customerPhone}
             email={user?.email}
-            paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-            placing={placing} onPlaceOrder={handlePlaceOrder}
+            paymentMethod={paymentMethod} 
+            setPaymentMethod={setPaymentMethod}
+            placing={placing} 
+            onPlaceOrder={handlePlaceOrder}
           />
 
         </div>

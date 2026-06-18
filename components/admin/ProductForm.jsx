@@ -127,15 +127,24 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ✅ Validate required fields
     if (!product.name || !product.sku || !product.price) {
       setMessage("❌ Name, SKU, and Price are required");
       return;
     }
 
-    const minQty = parseInt(product.minOrderQuantity);
-    const maxQty = parseInt(product.maxOrderQuantity);
+    // ✅ Validate min/max quantity
+    const minQty = parseInt(product.minOrderQuantity) || 1;
+    const maxQty = parseInt(product.maxOrderQuantity) || 5;
     if (minQty > maxQty) {
       setMessage("❌ Minimum quantity cannot be greater than maximum quantity");
+      return;
+    }
+
+    // ✅ Validate stock vs max quantity
+    const stock = parseInt(product.stock) || 0;
+    if (stock > 0 && maxQty > stock) {
+      setMessage(`❌ Maximum order quantity (${maxQty}) cannot exceed available stock (${stock})`);
       return;
     }
 
@@ -153,7 +162,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       shippingCost: parseFloat(product.shippingCost) || 0,
       minOrderQuantity: parseInt(product.minOrderQuantity) || 1,
       maxOrderQuantity: parseInt(product.maxOrderQuantity) || 5,
-      status: product.status,
+      status: product.status, // ✅ Draft/Active/Archived
       weight: product.weight ? parseFloat(product.weight) : null,
       length: product.length ? parseFloat(product.length) : null,
       breadth: product.breadth ? parseFloat(product.breadth) : null,
@@ -164,6 +173,8 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       images: product.images,
       variations: product.variations,
     };
+
+    console.log("Submitting product:", submitData);
 
     const url = isEdit ? `/api/products/${existingProduct._id}` : "/api/products";
     const method = isEdit ? "PUT" : "POST";
@@ -186,6 +197,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
         setMessage(`❌ Error: ${data.error}`);
       }
     } catch (error) {
+      console.error("Submit error:", error);
       setMessage("❌ Network error");
     }
   };

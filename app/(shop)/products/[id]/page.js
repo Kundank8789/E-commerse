@@ -31,6 +31,11 @@ export default function ProductPage() {
         setProduct(data);
         if (data.sizes?.length) setSelectedSize(data.sizes[0]);
         if (data.colors?.length) setSelectedColor(data.colors[0]);
+        
+        // ✅ Set initial quantity to min order quantity
+        if (data.minOrderQuantity) {
+          setQty(data.minOrderQuantity);
+        }
       } catch (err) {
         console.error("Error fetching product:", err);
       } finally {
@@ -41,11 +46,44 @@ export default function ProductPage() {
     if (id) fetchProduct();
   }, [id]);
 
+  // ✅ Quantity handlers with min/max limits
+  const increaseQty = () => {
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    if (qty < maxQty) {
+      setQty(qty + 1);
+    } else {
+      toast.error(`Maximum ${maxQty} units allowed per order`);
+    }
+  };
+
+  const decreaseQty = () => {
+    const minQty = product?.minOrderQuantity || 1;
+    if (qty > minQty) {
+      setQty(qty - 1);
+    } else {
+      toast.error(`Minimum ${minQty} unit required`);
+    }
+  };
+
   const handleAddToCart = () => {
     if (product?.stock === 0) {
       toast.error("Out of stock!");
       return;
     }
+    
+    // ✅ Validate quantity limits
+    const minQty = product?.minOrderQuantity || 1;
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    
+    if (qty < minQty) {
+      toast.error(`Minimum ${minQty} unit required`);
+      return;
+    }
+    if (qty > maxQty) {
+      toast.error(`Maximum ${maxQty} units allowed`);
+      return;
+    }
+    
     for (let i = 0; i < qty; i++) {
       addToCart({
         ...product,
@@ -65,6 +103,20 @@ export default function ProductPage() {
       toast.error("Out of stock!");
       return;
     }
+    
+    // ✅ Validate quantity limits
+    const minQty = product?.minOrderQuantity || 1;
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    
+    if (qty < minQty) {
+      toast.error(`Minimum ${minQty} unit required`);
+      return;
+    }
+    if (qty > maxQty) {
+      toast.error(`Maximum ${maxQty} units allowed`);
+      return;
+    }
+    
     for (let i = 0; i < qty; i++) {
       addToCart({
         ...product,
@@ -92,7 +144,7 @@ export default function ProductPage() {
   const isOutOfStock = product?.stock === 0;
   const images = product?.images || [];
 
-  // Generate GOLD stars using Lucide Star with fill
+  // Generate GOLD stars
   const renderStars = (rating = 5) => {
     const stars = [];
     for (let i = 0; i < rating; i++) {
@@ -112,14 +164,12 @@ export default function ProductPage() {
   const formatDescription = (text) => {
     if (!text) return "No description available";
     
-    // Split by new lines
     const lines = text.split("\n");
     
     return lines.map((line, index) => {
       const trimmed = line.trim();
       if (!trimmed) return <br key={index} />;
       
-      // Check if it's a bullet point
       if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("*")) {
         const cleanText = trimmed.replace(/^[•\-\*]\s*/, "");
         return (
@@ -130,7 +180,6 @@ export default function ProductPage() {
         );
       }
       
-      // Regular paragraph
       return <p key={index} className="mb-2">{trimmed}</p>;
     });
   };
@@ -139,7 +188,6 @@ export default function ProductPage() {
   const descriptionWords = fullDescription.split(" ").length;
   const hasMoreContent = descriptionWords > 30;
   
-  // Get short description (first 30 words)
   const getShortDescription = () => {
     const words = fullDescription.split(" ");
     if (words.length <= 30) return fullDescription;
@@ -161,6 +209,10 @@ export default function ProductPage() {
       </div>
     );
   }
+
+  const minQty = product?.minOrderQuantity || 1;
+  const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+  const shippingCost = product?.shippingCost || 0;
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 md:px-8">
@@ -261,7 +313,15 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Description - PRESERVES FORMATTING */}
+            {/* ✅ Shipping Cost Display */}
+            <div className="flex items-center gap-2">
+              <Truck size={16} className="text-yellow-500" />
+              <span className="text-sm text-gray-600">
+                Shipping: {shippingCost > 0 ? `₹${shippingCost}` : 'Free'}
+              </span>
+            </div>
+
+            {/* Description */}
             <div>
               <p className="font-medium text-gray-800 mb-2">Product Details:</p>
               <div className="text-sm text-gray-600">
@@ -335,25 +395,54 @@ export default function ProductPage() {
                 </div>
               )}
 
+              {/* ✅ Quantity with Min/Max Display */}
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1">Qty</p>
+                <p className="text-xs font-medium text-gray-700 mb-1">
+                  Qty <span className="text-gray-400 font-normal">(Min: {minQty})</span>
+                </p>
                 <div className="flex items-center border border-gray-300 rounded-full w-fit">
                   <button
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    className="px-3 py-1 text-lg hover:bg-gray-100 rounded-l-full"
+                    onClick={decreaseQty}
+                    disabled={qty <= minQty || isOutOfStock}
+                    className={`px-3 py-1 text-lg rounded-l-full ${
+                      qty <= minQty || isOutOfStock ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
+                    }`}
                   >
                     -
                   </button>
                   <span className="px-3 text-sm min-w-[40px] text-center">{qty}</span>
                   <button
-                    onClick={() => setQty(qty + 1)}
-                    className="px-3 py-1 text-lg hover:bg-gray-100 rounded-r-full"
+                    onClick={increaseQty}
+                    disabled={qty >= maxQty || isOutOfStock || maxQty === 0}
+                    className={`px-3 py-1 text-lg rounded-r-full ${
+                      qty >= maxQty || isOutOfStock || maxQty === 0 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
+                    }`}
                   >
                     +
                   </button>
                 </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Min: {minQty} | Max: {maxQty > 0 ? maxQty : 'Unlimited'}
+                </p>
               </div>
             </div>
+
+            {/* ✅ Variations Display */}
+            {product?.variations?.length > 0 && (
+              <div>
+                <h3 className="text-xs font-medium text-gray-700 mb-1">Available Variations</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.variations.slice(0, 4).map((variation, idx) => (
+                    <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                      {variation.size} / {variation.color} {variation.stock > 0 ? `(${variation.stock})` : '❌'}
+                    </span>
+                  ))}
+                  {product.variations.length > 4 && (
+                    <span className="text-xs text-gray-400">+{product.variations.length - 4} more</span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Stock */}
             <div className="flex items-center gap-2">
@@ -374,7 +463,7 @@ export default function ProductPage() {
                     : "bg-black text-white hover:bg-gray-800"
                 }`}
               >
-                Add to Cart — ₹{product.price * qty}
+                {isOutOfStock ? "Out of Stock" : `Add to Cart — ₹${product.price * qty}`}
               </button>
               <button
                 onClick={handleBuyNow}
@@ -385,7 +474,7 @@ export default function ProductPage() {
                     : "border-black hover:bg-black hover:text-white"
                 }`}
               >
-                Buy Now
+                {isOutOfStock ? "Out of Stock" : "Buy Now"}
               </button>
             </div>
 
@@ -407,6 +496,7 @@ export default function ProductPage() {
               <div className="text-center">
                 <Truck size={14} className="text-yellow-500 mx-auto" />
                 <p className="text-[10px] text-gray-500">Free Shipping</p>
+                <p className="text-[8px] text-gray-400">on ₹499+</p>
               </div>
               <div className="text-center">
                 <RefreshCw size={14} className="text-yellow-500 mx-auto" />

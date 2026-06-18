@@ -156,18 +156,43 @@ export default function AdminOrders() {
     }
   };
 
+  // ✅ Enhanced CSV Export with more fields
   const downloadOrdersCSV = () => {
-    const headers = ["Order ID", "Date", "Customer", "Mobile", "Total", "Payment Method", "Status", "Items"];
-    const rows = filteredOrders.map(order => [
-      order._id.slice(-8),
-      new Date(order.createdAt).toLocaleDateString(),
-      order.address?.name || order.user?.name,
-      order.address?.phone,
-      order.total,
-      order.paymentMethod?.toUpperCase(),
-      order.status,
-      order.items?.length || 0,
-    ]);
+    const headers = [
+      "Order ID", 
+      "Date", 
+      "Customer", 
+      "Mobile", 
+      "Subtotal", 
+      "Shipping", 
+      "Total", 
+      "Payment Method", 
+      "Payment Status", 
+      "Status", 
+      "Items",
+      "Product Names"
+    ];
+    
+    const rows = filteredOrders.map(order => {
+      const productNames = order.items?.map(item => 
+        item.product?.name || item.productName || "Product"
+      ).join("; ") || "N/A";
+      
+      return [
+        order._id.slice(-8),
+        new Date(order.createdAt).toLocaleDateString(),
+        order.address?.name || order.user?.name || "N/A",
+        order.address?.phone || "N/A",
+        order.subtotal || order.total || 0,
+        order.shippingCost || 0,
+        order.total || 0,
+        order.paymentMethod?.toUpperCase() || "N/A",
+        order.paymentStatus || "N/A",
+        order.status || "N/A",
+        order.items?.length || 0,
+        productNames,
+      ];
+    });
 
     const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -298,7 +323,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Stats Cards - Row 1: Order Status */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <StatCard 
           label="Total Orders" 
@@ -344,7 +369,7 @@ export default function AdminOrders() {
         />
       </div>
 
-      {/* Stats Cards - Row 2: RTO & Payment Methods */}
+      {/* Stats Cards - Row 2 */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         <StatCard 
           label="RTO (Return to Origin)" 
@@ -369,7 +394,7 @@ export default function AdminOrders() {
         />
       </div>
 
-      {/* Items Per Page Selector */}
+      {/* Items Per Page */}
       <div className="flex justify-end mb-3">
         <select
           value={itemsPerPage}
@@ -382,7 +407,7 @@ export default function AdminOrders() {
         </select>
       </div>
 
-      {/* Search and Filters Bar */}
+      {/* Search and Filters */}
       <div className="bg-gray-800 rounded-xl p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           <input
@@ -537,7 +562,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
+      {/* Bulk Actions */}
       {currentOrders.length > 0 && (
         <div className="bg-gray-800 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -582,7 +607,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Orders List */}
+      {/* Orders List - Keep the same as before */}
       {currentOrders.length === 0 ? (
         <div className="text-center py-12 bg-gray-800 rounded-xl">
           <p className="text-gray-400">No orders found</p>

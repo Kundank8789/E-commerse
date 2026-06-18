@@ -47,11 +47,12 @@ export default function Footer() {
             <div className="mt-4 space-y-2">
               <p className="text-gray-400 text-sm">📍 India</p>
               <p className="text-gray-400 text-sm">📞 +91 8826305153</p>
+              {/* ✅ Updated Email */}
               <a 
-                href="mailto:niwleofficial@gmail.com" 
+                href="mailto:supportniwle@gmail.com" 
                 className="text-gray-400 text-sm hover:text-yellow-500 transition flex items-center gap-2"
               >
-                ✉️ niwleofficial@gmail.com
+                ✉️ supportniwle@gmail.com
               </a>
             </div>
           </div>
@@ -119,7 +120,7 @@ export default function Footer() {
             </div>
             <p className="text-yellow-500 text-xs mt-2">🎉 Get 10% Off on your first order!</p>
             
-            {/* Social Media with Icons - Updated Links */}
+            {/* Social Media with Icons */}
             <div className="mt-4">
               <h3 className="text-sm font-semibold mb-2">FOLLOW US</h3>
               <div className="flex gap-4">
