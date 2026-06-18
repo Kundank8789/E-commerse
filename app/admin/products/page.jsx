@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -13,25 +14,68 @@ export default function AdminProducts() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [sort, setSort] = useState("default");
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then(setProducts);
+  const [loading, setLoading] = useState(true);
 
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then(setCategories);
+  // ✅ FETCH PRODUCTS
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/products", {
+        credentials: "include"
+      });
+      const data = await res.json();
+      console.log("📦 Raw products from API:", data);
+      
+      // Ensure each product has a status
+      const productsWithStatus = (Array.isArray(data) ? data : []).map(p => ({
+        ...p,
+        status: p.status || 'active' // Default to active if no status
+      }));
+      
+      setProducts(productsWithStatus);
+    } catch (error) {
+      console.error("FETCH ERROR:", error);
+      toast.error("Failed to fetch products");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("CATEGORIES ERROR:", error);
+      setCategories([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
   }, []);
 
   const deleteProduct = async (id) => {
     if (!confirm("Delete this product?")) return;
-    await fetch(`/api/products/${id}`, { method: "DELETE" });
-    setProducts((prev) => prev.filter((p) => p._id !== id));
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Product deleted successfully");
+        fetchProducts();
+      } else {
+        toast.error("Failed to delete product");
+      }
+    } catch (error) {
+      toast.error("Error deleting product");
+    }
   };
 
   const getStockStatus = (p) => {
@@ -41,27 +85,55 @@ export default function AdminProducts() {
   };
 
   const getStatusBadge = (status) => {
-    switch(status) {
+    const productStatus = status || 'active';
+    switch (productStatus) {
       case 'active':
-        return { text: 'Active', color: 'bg-green-100 text-green-800', icon: '🟢' };
+        return { text: '🟢 Active', color: 'bg-green-100 text-green-800' };
       case 'draft':
-        return { text: 'Draft', color: 'bg-yellow-100 text-yellow-800', icon: '📝' };
+        return { text: '📝 Draft', color: 'bg-yellow-100 text-yellow-800' };
       case 'archived':
-        return { text: 'Archived', color: 'bg-gray-100 text-gray-800', icon: '📦' };
+        return { text: '📦 Archived', color: 'bg-gray-100 text-gray-800' };
       default:
-        return { text: 'Active', color: 'bg-green-100 text-green-800', icon: '🟢' };
+        return { text: '🟢 Active', color: 'bg-green-100 text-green-800' };
     }
   };
 
-  // Filter logic
-  let filtered = products.filter((p) => {
-    const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
-    const matchCategory = selectedCategory === "all" || 
-      p.category?._id === selectedCategory || 
-      p.categories?.some((c) => c._id === selectedCategory);
-    const matchStatus = selectedStatus === "all" || p.status === selectedStatus;
-    return matchSearch && matchCategory && matchStatus;
-  });
+  // ✅ FIXED FILTERING - Completely rewritten for clarity
+  const getFilteredProducts = () => {
+    console.log("🔍 Filtering products...");
+    console.log("Selected Status:", selectedStatus);
+    console.log("All products:", products.map(p => ({ name: p.name, status: p.status })));
+    
+    let filtered = products.filter((p) => {
+      // Search filter
+      const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
+      
+      // Category filter
+      const matchCategory = selectedCategory === "all" || 
+        p.categories?.some((c) => c._id === selectedCategory);
+      
+      // ✅ STATUS FILTER - FIXED
+      let matchStatus = true;
+      
+      if (selectedStatus === "all") {
+        // Show ALL products when "All" is selected
+        matchStatus = true;
+        console.log(`✅ Showing ALL products (including ${p.status})`);
+      } else {
+        // Show only products matching the selected status
+        matchStatus = p.status === selectedStatus;
+        console.log(`🔍 Filtering by ${selectedStatus}: ${p.name} is ${p.status} - ${matchStatus ? 'MATCH' : 'NO MATCH'}`);
+      }
+      
+      return matchSearch && matchCategory && matchStatus;
+    });
+    
+    console.log(`📊 Filtered results: ${filtered.length} products`);
+    return filtered;
+  };
+
+  // Apply filters
+  let filtered = getFilteredProducts();
 
   // Sorting
   if (sort === "low") {
@@ -89,9 +161,21 @@ export default function AdminProducts() {
     setCurrentPage(1);
   }, [search, selectedCategory, selectedStatus, sort]);
 
+  // Count products by status
   const activeCount = products.filter(p => p.status === 'active').length;
   const draftCount = products.filter(p => p.status === 'draft').length;
   const archivedCount = products.filter(p => p.status === 'archived').length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+          <p className="mt-2 text-gray-500">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,15 +185,27 @@ export default function AdminProducts() {
           <div>
             <h1 className="text-3xl font-bold text-gray-800">All Products</h1>
             <p className="text-gray-500 mt-1">Manage your product inventory</p>
+            {/* Debug info */}
+            <div className="text-xs text-gray-400 mt-1">
+              Total: {products.length} | Active: {activeCount} | Draft: {draftCount} | Archived: {archivedCount}
+            </div>
           </div>
-          <Link href="/admin/products/new">
-            <button className="bg-black hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg transition duration-200 flex items-center gap-2 shadow-md">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Product
+          <div className="flex gap-2">
+            <button
+              onClick={fetchProducts}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2"
+            >
+              🔄 Refresh
             </button>
-          </Link>
+            <Link href="/admin/products/new">
+              <button className="bg-black hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg transition duration-200 flex items-center gap-2 shadow-md">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Product
+              </button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -118,15 +214,15 @@ export default function AdminProducts() {
             <div className="text-sm text-gray-500">Total Products</div>
             <div className="text-2xl font-bold text-gray-800">{products.length}</div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500 cursor-pointer hover:shadow-md transition" onClick={() => setSelectedStatus("active")}>
             <div className="text-sm text-gray-500">Active Products</div>
             <div className="text-2xl font-bold text-green-600">{activeCount}</div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500 cursor-pointer hover:shadow-md transition" onClick={() => setSelectedStatus("draft")}>
             <div className="text-sm text-gray-500">Draft Products</div>
             <div className="text-2xl font-bold text-yellow-600">{draftCount}</div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-gray-500">
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-gray-500 cursor-pointer hover:shadow-md transition" onClick={() => setSelectedStatus("archived")}>
             <div className="text-sm text-gray-500">Archived Products</div>
             <div className="text-2xl font-bold text-gray-600">{archivedCount}</div>
           </div>
@@ -194,45 +290,63 @@ export default function AdminProducts() {
           {/* Status Filter Buttons */}
           <div className="flex gap-2 mt-4 flex-wrap">
             <button
-              onClick={() => setSelectedStatus("all")}
+              onClick={() => {
+                setSelectedStatus("all");
+                console.log("🔄 Clicked: Show ALL products");
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition duration-200 ${
-                selectedStatus === "all" 
-                  ? "bg-black text-white" 
+                selectedStatus === "all"
+                  ? "bg-black text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
               All ({products.length})
             </button>
             <button
-              onClick={() => setSelectedStatus("active")}
+              onClick={() => {
+                setSelectedStatus("active");
+                console.log("🔄 Clicked: Show ACTIVE products");
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition duration-200 flex items-center gap-1 ${
-                selectedStatus === "active" 
-                  ? "bg-green-600 text-white" 
+                selectedStatus === "active"
+                  ? "bg-green-600 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
               🟢 Active ({activeCount})
             </button>
             <button
-              onClick={() => setSelectedStatus("draft")}
+              onClick={() => {
+                setSelectedStatus("draft");
+                console.log("🔄 Clicked: Show DRAFT products");
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition duration-200 flex items-center gap-1 ${
-                selectedStatus === "draft" 
-                  ? "bg-yellow-600 text-white" 
+                selectedStatus === "draft"
+                  ? "bg-yellow-600 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
               📝 Draft ({draftCount})
             </button>
             <button
-              onClick={() => setSelectedStatus("archived")}
+              onClick={() => {
+                setSelectedStatus("archived");
+                console.log("🔄 Clicked: Show ARCHIVED products");
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition duration-200 flex items-center gap-1 ${
-                selectedStatus === "archived" 
-                  ? "bg-gray-600 text-white" 
+                selectedStatus === "archived"
+                  ? "bg-gray-600 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
             >
               📦 Archived ({archivedCount})
             </button>
+          </div>
+
+          {/* Current filter display */}
+          <div className="mt-2 text-xs text-gray-500">
+            Current filter: {selectedStatus === "all" ? "Showing ALL products" : `Showing ${selectedStatus} products`}
+            {filtered.length > 0 && ` (${filtered.length} results)`}
           </div>
         </div>
 
@@ -259,7 +373,9 @@ export default function AdminProducts() {
                       <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      No products found
+                      {selectedStatus === "all" 
+                        ? "No products found. Try adding one!" 
+                        : `No ${selectedStatus} products found`}
                     </td>
                   </tr>
                 ) : (
@@ -294,6 +410,8 @@ export default function AdminProducts() {
                               {p.description.substring(0, 50)}...
                             </div>
                           )}
+                          {/* Show status badge in name too for debugging */}
+                          <span className="text-xs text-gray-400">ID: {p._id?.substring(0, 6)}</span>
                         </td>
 
                         {/* SKU */}
@@ -322,7 +440,7 @@ export default function AdminProducts() {
                         {/* Category */}
                         <td className="px-4 py-3">
                           <span className="text-sm text-gray-700">
-                            {p.categories && p.categories.length > 0 
+                            {p.categories && p.categories.length > 0
                               ? p.categories.map(c => c.name).join(', ')
                               : (p.category?.name || 'Uncategorized')}
                           </span>
@@ -369,16 +487,16 @@ export default function AdminProducts() {
           <div className="px-4 py-3 bg-gray-50 border-t">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(endIndex, filtered.length)} of {filtered.length} products
+                Showing {filtered.length > 0 ? startIndex + 1 : 0} to {Math.min(endIndex, filtered.length)} of {filtered.length} products
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className={`px-3 py-1 border rounded-lg transition flex items-center gap-1 ${
-                    currentPage === 1 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -387,7 +505,7 @@ export default function AdminProducts() {
                   </svg>
                   Previous
                 </button>
-                
+
                 {/* Page Numbers */}
                 <div className="flex gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -401,7 +519,7 @@ export default function AdminProducts() {
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     if (pageNum > 0 && pageNum <= totalPages) {
                       return (
                         <button
@@ -420,13 +538,13 @@ export default function AdminProducts() {
                     return null;
                   })}
                 </div>
-                
+
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`px-3 py-1 border rounded-lg transition flex items-center gap-1 ${
                     currentPage === totalPages || totalPages === 0
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
                 >

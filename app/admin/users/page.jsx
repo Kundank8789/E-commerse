@@ -45,6 +45,44 @@ export default function UsersPage() {
     }
   };
 
+  // ✅ Export Users as CSV
+  const exportUsersCSV = () => {
+    const headers = [
+      "Name", 
+      "Email", 
+      "Phone", 
+      "Role", 
+      "Address", 
+      "Joined Date",
+      "Orders Count"
+    ];
+    
+    const rows = filteredUsers.map(user => {
+      // Count orders for this user (if available)
+      const orderCount = user.orderCount || 0;
+      
+      return [
+        user.name || "N/A",
+        user.email || "N/A",
+        user.phone || "N/A",
+        user.role || "user",
+        user.address || "N/A",
+        new Date(user.createdAt).toLocaleDateString(),
+        orderCount,
+      ];
+    });
+
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Users exported successfully!");
+  };
+
   // Filter users based on search and role
   const filteredUsers = users.filter(user => {
     const matchesSearch = search === "" || 
@@ -76,10 +114,25 @@ export default function UsersPage() {
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Users</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage customer accounts and administrators</p>
+        {/* Header with Export Button */}
+        <div className="flex flex-wrap items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Users</h1>
+            <p className="text-gray-400 text-sm mt-1">Manage customer accounts and administrators</p>
+          </div>
+          
+          {/* ✅ Export Button */}
+          <div className="flex gap-2 mt-2 md:mt-0">
+            <button
+              onClick={exportUsersCSV}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              📥 Export Users (CSV)
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
