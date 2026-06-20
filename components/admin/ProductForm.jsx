@@ -162,7 +162,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       shippingCost: parseFloat(product.shippingCost) || 0,
       minOrderQuantity: parseInt(product.minOrderQuantity) || 1,
       maxOrderQuantity: parseInt(product.maxOrderQuantity) || 5,
-      status: product.status, // ✅ Draft/Active/Archived
+      status: product.status,
       weight: product.weight ? parseFloat(product.weight) : null,
       length: product.length ? parseFloat(product.length) : null,
       breadth: product.breadth ? parseFloat(product.breadth) : null,
@@ -176,13 +176,18 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
 
     console.log("Submitting product:", submitData);
 
-    const url = isEdit ? `/api/products/${existingProduct._id}` : "/api/products";
+    // ✅ FIXED: Use admin API instead of public API
+    const url = isEdit 
+      ? `/api/admin/products/${existingProduct._id}` 
+      : "/api/admin/products";
+    
     const method = isEdit ? "PUT" : "POST";
 
     try {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ Important for admin authentication
         body: JSON.stringify(submitData),
       });
 

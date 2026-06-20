@@ -177,15 +177,24 @@ export function CartProvider({ children }) {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-  // ✅ GET SHIPPING COST
+  // ✅ GET SHIPPING COST - Based on product shipping costs
   const getShippingCost = () => {
-    const total = getCartTotal();
-    // Free shipping above ₹499, or use product shipping costs
-    if (total >= 499) return 0;
+    if (!cart || cart.length === 0) return 0;
     
-    // Calculate max shipping cost from cart items
-    const shippingCosts = cart.map(item => item.shippingCost || 0);
-    return Math.max(...shippingCosts, 0);
+    // Get the highest shipping cost from all items in cart
+    const shippingCosts = cart.map(item => Number(item.shippingCost) || 0);
+    const maxShipping = Math.max(...shippingCosts, 0);
+    
+    // Optional: Free shipping above ₹499
+    const subtotal = getCartTotal();
+    if (subtotal >= 499) return 0;
+    
+    return maxShipping;
+  };
+
+  // ✅ GET GRAND TOTAL (NEW FUNCTION)
+  const getGrandTotal = () => {
+    return getCartTotal() + getShippingCost();
   };
 
   // ✅ GET CART ITEMS COUNT
@@ -204,6 +213,7 @@ export function CartProvider({ children }) {
         clearCart,
         getCartTotal,
         getShippingCost,
+        getGrandTotal, // ✅ Added this
         getCartCount,
       }}
     >

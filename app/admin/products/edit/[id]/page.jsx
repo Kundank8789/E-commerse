@@ -1,9 +1,9 @@
-// app/admin/products/edit/[id]/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
+import toast from "react-hot-toast";
 
 export default function EditProductPage() {
   const { id } = useParams();
@@ -14,15 +14,31 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${id}`);
-        if (!res.ok) throw new Error("Product not found");
+        setLoading(true);
+        console.log("🔍 Fetching product with ID:", id);
+        
+        // ✅ Use admin API
+        const res = await fetch(`/api/admin/products/${id}`, {
+          credentials: "include"
+        });
+        
+        console.log("📦 Response status:", res.status);
+        
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Product not found");
+        }
+        
         const data = await res.json();
+        console.log("📦 Product data received:", data);
+        
         // Handle both response formats
         const productData = data.product || data;
         setProduct(productData);
       } catch (err) {
         console.error("Error fetching product:", err);
         setError(err.message);
+        toast.error("Failed to load product");
       } finally {
         setLoading(false);
       }
@@ -37,7 +53,8 @@ export default function EditProductPage() {
     return (
       <div className="p-6 max-w-5xl mx-auto">
         <div className="text-center py-10">
-          <p className="text-gray-600">Loading product...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+          <p className="text-gray-600 mt-2">Loading product...</p>
         </div>
       </div>
     );
@@ -48,6 +65,19 @@ export default function EditProductPage() {
       <div className="p-6 max-w-5xl mx-auto">
         <div className="text-center py-10 bg-red-50 rounded-lg">
           <p className="text-red-600">{error || "Product not found"}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
+          >
+            Try Again
+          </button>
+          <br />
+          <a 
+            href="/admin/products" 
+            className="mt-4 inline-block px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          >
+            Back to Products
+          </a>
         </div>
       </div>
     );
