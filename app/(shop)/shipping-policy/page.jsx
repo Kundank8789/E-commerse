@@ -55,7 +55,13 @@ export default function ShippingPolicyPage() {
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Contact Us</h3>
             <p className="text-gray-600">If you have any questions regarding shipping, feel free to contact us at:</p>
-            <p className="text-yellow-600 font-medium mt-1">support@niwle.com</p>
+            {/* ✅ FIXED: Email is now clickable */}
+            <a 
+              href="mailto:supportniwle@gmail.com" 
+              className="text-yellow-600 font-medium mt-1 hover:text-yellow-700 hover:underline transition inline-block"
+            >
+              supportniwle@gmail.com
+            </a>
           </div>
         </div>
       </div>
