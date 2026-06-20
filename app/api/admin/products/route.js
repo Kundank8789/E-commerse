@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import Product from "@/models/Product";
+import mongoose from "mongoose";
+
+// ✅ Import models to register them with mongoose
 import "@/models/Category";
+import "@/models/Product";
 
 // Helper function to generate unique slug
 async function generateUniqueSlug(name, existingId = null) {
+  const Product = mongoose.models.Product;
+  if (!Product) {
+    throw new Error("Product model not found");
+  }
+  
   let baseSlug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -34,8 +42,20 @@ export async function GET(req) {
   try {
     await connectDB();
     
-    // ✅ FIXED: Return ALL products - NO status filter
-    const products = await Product.find({})
+    // ✅ Get Product model from mongoose
+    const Product = mongoose.models.Product;
+    
+    if (!Product) {
+      console.error("❌ Product model not found");
+      console.log("Available models:", Object.keys(mongoose.models));
+      return NextResponse.json(
+        { error: "Product model not found" },
+        { status: 500 }
+      );
+    }
+    
+    // ✅ IMPORTANT: Return ALL products - NO status filter
+    const products = await Product.find({})  // ← NO filter here!
       .populate("categories")
       .sort({ createdAt: -1 });
     
@@ -51,7 +71,7 @@ export async function GET(req) {
   } catch (error) {
     console.error("ADMIN GET ERROR:", error);
     return NextResponse.json(
-      { error: "Failed to fetch products" },
+      { error: "Failed to fetch products: " + error.message },
       { status: 500 }
     );
   }
@@ -60,6 +80,17 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await connectDB();
+    
+    // ✅ Get Product model from mongoose
+    const Product = mongoose.models.Product;
+    
+    if (!Product) {
+      return NextResponse.json(
+        { error: "Product model not found" },
+        { status: 500 }
+      );
+    }
+    
     const body = await req.json();
 
     console.log("📝 Creating product:", body.name);

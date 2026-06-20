@@ -10,7 +10,7 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart, getCartTotal, getShippingCost } = useCart();
+  const { cart, clearCart, getCartTotal, getShippingCost, getGrandTotal } = useCart();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,19 @@ export default function CheckoutPage() {
   // ✅ Calculate totals using cart context functions
   const subtotal = getCartTotal();
   const shippingCost = getShippingCost();
-  const total = subtotal + shippingCost;
+  const total = getGrandTotal();
+
+  // ✅ Debug: Log shipping details
+  useEffect(() => {
+    console.log("📦 Cart items with shipping:", cart.map(item => ({
+      name: item.name,
+      shippingCost: item.shippingCost || 0,
+      quantity: item.quantity
+    })));
+    console.log("🚚 Total shipping cost:", shippingCost);
+    console.log("💰 Subtotal:", subtotal);
+    console.log("💵 Grand Total:", total);
+  }, [cart, shippingCost, subtotal, total]);
 
   useEffect(() => {
     async function fetchUser() {
@@ -76,7 +88,6 @@ export default function CheckoutPage() {
       return false;
     }
     
-    // Check if quantity exceeds available stock
     const exceededStock = cart.filter(item => item.quantity > item.stock);
     if (exceededStock.length > 0) {
       toast.error(`Quantity exceeds stock for: ${exceededStock.map(i => i.name).join(', ')}`);
@@ -89,7 +100,8 @@ export default function CheckoutPage() {
   const orderPayload = {
     items: cart.map((item) => ({ 
       product: item._id || item.id, 
-      quantity: item.quantity 
+      quantity: item.quantity,
+      shippingCost: item.shippingCost || 0 // ✅ Include shipping cost per item
     })),
     subtotal: subtotal,
     shippingCost: shippingCost,

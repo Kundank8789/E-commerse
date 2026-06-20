@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import Product from "@/models/Product";
+import mongoose from "mongoose";
+import "@/models/Product";
 import "@/models/Category";
 
 // Helper function to generate unique slug
 async function generateUniqueSlug(name, existingId = null) {
+  // ✅ Get Product model from mongoose
+  const Product = mongoose.models.Product;
+  
+  if (!Product) {
+    throw new Error("Product model not found");
+  }
+  
   let baseSlug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -36,6 +44,18 @@ export async function GET(req) {
   try {
     await connectDB();
     
+    // ✅ Get Product model from mongoose
+    const Product = mongoose.models.Product;
+    
+    if (!Product) {
+      console.error("❌ Product model not found");
+      console.log("Available models:", Object.keys(mongoose.models));
+      return NextResponse.json(
+        { error: "Product model not found" },
+        { status: 500 }
+      );
+    }
+    
     // Check if it's an admin request (optional)
     const url = new URL(req.url);
     const isAdmin = url.searchParams.get("admin") === "true";
@@ -47,7 +67,9 @@ export async function GET(req) {
     const products = await Product.find(query)
       .populate("categories")
       .sort({ createdAt: -1 });
-      
+    
+    console.log(`📦 Public API: Returning ${products.length} products`);
+    
     return NextResponse.json(products);
   } catch (error) {
     console.error("GET ERROR:", error);
@@ -61,6 +83,18 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await connectDB();
+    
+    // ✅ Get Product model from mongoose
+    const Product = mongoose.models.Product;
+    
+    if (!Product) {
+      console.error("❌ Product model not found");
+      return NextResponse.json(
+        { error: "Product model not found" },
+        { status: 500 }
+      );
+    }
+    
     const body = await req.json();
 
     console.log("Received body:", body);
@@ -146,7 +180,7 @@ export async function POST(req) {
       shippingCost: Number(body.shippingCost) || 0,
       minOrderQuantity: minQty,
       maxOrderQuantity: maxQty,
-      status: status, // ✅ Draft won't show on frontend
+      status: status,
       weight: body.weight ? Number(body.weight) : 0,
       length: body.length ? Number(body.length) : 0,
       breadth: body.breadth ? Number(body.breadth) : 0,
