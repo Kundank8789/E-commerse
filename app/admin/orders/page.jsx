@@ -44,7 +44,7 @@ export default function AdminOrders() {
       const res = await fetch("/api/orders", { credentials: "include" });
       const data = await res.json();
       if (!res.ok) { setOrders([]); return; }
-      const ordersData = Array.isArray(data) ? data : [];
+      const ordersData = Array.isArray(data.orders) ? data.orders : [];
       setOrders(ordersData);
       calculateStats(ordersData);
       setLoading(false);

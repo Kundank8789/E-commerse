@@ -2,32 +2,51 @@ import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema(
   {
+    orderId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     items: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
+          required: true,
         },
-        quantity: Number,
-        // ✅ Store product details at time of order
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
+        },
         productName: { type: String },
         productPrice: { type: Number },
         productImage: { type: String },
         selectedSize: { type: String },
         selectedColor: { type: String },
+        shippingCost: { type: Number, default: 0 },
       },
     ],
-    
-    // ✅ Pricing breakdown
-    subtotal: { type: Number, required: true },
-    shippingCost: { type: Number, default: 0 },
-    total: { type: Number, required: true },
-    
-    // ✅ Order limits tracking
+
+    subtotal: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    shippingCost: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    total: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
     minOrderQuantity: { type: Number, default: 1 },
     maxOrderQuantity: { type: Number, default: 5 },
 
-    // 🔥 UPDATED STATUS ENUM
     status: {
       type: String,
       enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "rto"],
@@ -35,7 +54,7 @@ const OrderSchema = new mongoose.Schema(
     },
 
     address: {
-      name: { type: String },
+      name: { type: String, required: true },
       phone: { type: String, required: true },
       city: { type: String, required: true },
       state: { type: String, required: true },
@@ -47,53 +66,61 @@ const OrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    
+
     paymentMethod: {
       type: String,
       enum: ["razorpay", "cod"],
       default: "cod",
     },
-    
+
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
-    
+
     razorpay_order_id: { type: String },
     razorpay_payment_id: { type: String },
-    
-    // ✅ Order notes
+    razorpay_signature: { type: String },
+
     notes: { type: String, default: "" },
-    
-    // ✅ Tracking information
     trackingNumber: { type: String, default: "" },
     trackingUrl: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-// ✅ Pre-save middleware to calculate total if not provided
-OrderSchema.pre('save', function(next) {
-  if (!this.total && this.subtotal !== undefined) {
+// ✅ async hook — no next parameter, no next() call
+OrderSchema.pre('save', async function () {
+  if (!this.orderId) {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 10000);
+    this.orderId = `ORD-${timestamp}-${random}`;
+  }
+
+  if (this.subtotal !== undefined && this.subtotal !== null) {
     this.total = this.subtotal + (this.shippingCost || 0);
   }
-  next();
 });
 
-// ✅ Virtual for discount calculation (if needed later)
-OrderSchema.virtual('discount').get(function() {
+// ✅ Virtuals
+OrderSchema.virtual('discount').get(function () {
   return this.subtotal && this.total ? this.subtotal - this.total : 0;
 });
 
-// ✅ Ensure virtuals are included in JSON
+OrderSchema.virtual('itemCount').get(function () {
+  return this.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+});
+
 OrderSchema.set('toJSON', { virtuals: true });
 OrderSchema.set('toObject', { virtuals: true });
 
-// ✅ Indexes for better performance
+// ✅ Indexes
 OrderSchema.index({ user: 1, createdAt: -1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ orderId: 1 }, { unique: true, sparse: true });
 
-export default mongoose.models.Order ||
-  mongoose.model("Order", OrderSchema);
+// ✅ Ensure model is registered only once
+const Order = mongoose.models.Order || mongoose.model("Order", OrderSchema);
+export default Order;
