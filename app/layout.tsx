@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { GoogleAnalytics } from '@next/third-parties/google'; // ← ADD THIS LINE
 
 import Providers from "@/components/Providers";
-
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MyStore",
   description: "Modern E-commerce Store",
-   verification: {
+  verification: {
     google: "MPwwNhKwHRbs5B4ThxHboTznHJSGFx6k1FvGV9fA-t8",
   },
 };
@@ -31,13 +31,12 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en" data-scroll-behavior="smooth"
+      lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col w-full overflow-x-hidden bg-white text-black">
-
         <Providers>
-
           {/* MAIN CONTENT */}
           <main className="flex-1 w-full">
             {children}
@@ -56,10 +55,10 @@ export default function RootLayout({
               },
             }}
           />
-
         </Providers>
-
       </body>
+      {/* ← ADD THIS GOOGLE ANALYTICS COMPONENT */}
+      <GoogleAnalytics gaId="G-MLCCBFBW49" />
     </html>
   );
 }
