@@ -49,8 +49,23 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       .then(setCategories);
 
     if (isEdit && existingProduct) {
+      // ✅ Extract category IDs from objects if needed
+      let categoryIds = existingProduct.categories || [];
+      
+      // If categories are objects, extract their IDs
+      if (categoryIds.length > 0 && typeof categoryIds[0] === 'object') {
+        categoryIds = categoryIds.map(c => c._id || c.id);
+      }
+      
+      // ✅ Remove duplicate category IDs
+      categoryIds = [...new Set(categoryIds)];
+      
+      console.log("✅ Product categories:", existingProduct.categories);
+      console.log("✅ Extracted category IDs:", categoryIds);
+      
       setProduct({
         ...existingProduct,
+        categories: categoryIds, // ✅ Use extracted IDs
         colors: existingProduct.colors?.join(", ") || "",
         sizes: existingProduct.sizes?.join(", ") || "",
         lowStockThreshold: existingProduct.lowStockThreshold || "10",
@@ -112,7 +127,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
     }));
   };
 
-  // ✅ UPDATE variation (NEW)
+  // ✅ UPDATE variation
   const updateVariation = (index, updatedVariation) => {
     setProduct(prev => ({
       ...prev,
@@ -181,9 +196,9 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       height: product.height ? parseFloat(product.height) : null,
       colors: product.colors ? product.colors.split(",").map(c => c.trim()).filter(c => c) : [],
       sizes: product.sizes ? product.sizes.split(",").map(s => s.trim()).filter(s => s) : [],
-      categories: product.categories,
+      categories: product.categories, // ✅ Now this is an array of IDs
       images: product.images,
-      variations: product.variations, // ✅ Variations are included
+      variations: product.variations,
     };
 
     console.log("Submitting product:", submitData);
@@ -241,12 +256,11 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
         handleChange={handleChange} 
       />
       
-      {/* ✅ Updated ProductVariations with edit support */}
       <ProductVariations 
         product={product}
         onAddVariation={addVariation}
         onRemoveVariation={removeVariation}
-        onUpdateVariation={updateVariation}  // ✅ NEW: Pass update function
+        onUpdateVariation={updateVariation}
       />
       
       <ProductCategories 
