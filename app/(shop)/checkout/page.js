@@ -15,7 +15,6 @@ export default function CheckoutPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cod");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [address, setAddress] = useState({
@@ -101,7 +100,12 @@ export default function CheckoutPage() {
     items: cart.map((item) => ({ 
       product: item._id || item.id, 
       quantity: item.quantity,
-      shippingCost: item.shippingCost || 0 // ✅ Include shipping cost per item
+      shippingCost: item.shippingCost || 0,
+      productName: item.name,
+      productPrice: item.price,
+      productImage: item.images?.[0] || '',
+      selectedSize: item.selectedSize || '',
+      selectedColor: item.selectedColor || '',
     })),
     subtotal: subtotal,
     shippingCost: shippingCost,
@@ -118,34 +122,6 @@ export default function CheckoutPage() {
     document.body.appendChild(script);
   });
 
-  // ── COD Flow ────────────────────────────────────
-  const handleCOD = async () => {
-    if (!validateStockBeforeOrder()) return;
-    
-    try {
-      setPlacing(true);
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          ...orderPayload, 
-          paymentMethod: "cod", 
-          paymentStatus: "pending" 
-        }),
-      });
-      if (!res.ok) throw new Error("Order failed");
-      const order = await res.json();
-      toast.success("Order placed successfully 🎉");
-      clearCart();
-      setTimeout(() => router.push(`/order-success?orderId=${order._id}`), 1500);
-    } catch (error) {
-      console.error("COD Error:", error);
-      toast.error("Failed to place order");
-    } finally {
-      setPlacing(false);
-    }
-  };
-
   // ── Razorpay Flow ────────────────────────────────
   const handleRazorpay = async () => {
     if (!validateStockBeforeOrder()) return;
@@ -153,46 +129,101 @@ export default function CheckoutPage() {
     try {
       setPlacing(true);
       const loaded = await loadRazorpay();
-      if (!loaded) { toast.error("Razorpay failed to load"); return; }
+      if (!loaded) { 
+        toast.error("Razorpay failed to load"); 
+        setPlacing(false);
+        return; 
+      }
 
-      const res = await fetch("/api/payment/create-order", {
+      // ✅ Create order first
+      const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: total }),
+        body: JSON.stringify({ 
+          ...orderPayload, 
+          paymentMethod: "razorpay", 
+          paymentStatus: "pending" 
+        }),
       });
-      const { order } = await res.json();
+      
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        throw new Error(orderData.error || "Failed to create order");
+      }
+      
+      const order = orderData.order || orderData;
+      console.log("✅ Order created:", order._id);
+
+      // ✅ Create Razorpay payment order
+      const paymentRes = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          amount: total,
+          orderId: order._id 
+        }),
+      });
+      
+      const paymentData = await paymentRes.json();
+      if (!paymentRes.ok) {
+        throw new Error(paymentData.error || "Failed to create payment");
+      }
+      
+      const { order: razorpayOrder } = paymentData;
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
+        amount: razorpayOrder.amount,
         currency: "INR",
         name: "NIWLE",
         description: "Order Payment",
-        order_id: order.id,
+        order_id: razorpayOrder.id,
         handler: async (response) => {
-          const verifyRes = await fetch("/api/payment/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...response, orderData: orderPayload }),
-          });
-          const data = await verifyRes.json();
-          if (data.success) {
-            toast.success("Payment successful 🎉");
-            clearCart();
-            setTimeout(() => router.push(`/order-success?orderId=${data.orderId}`), 1500);
-          } else {
+          try {
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                ...response, 
+                orderData: orderPayload,
+                orderId: order._id,
+              }),
+            });
+            
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              toast.success("Payment successful 🎉");
+              clearCart();
+              const orderId = verifyData.orderId || order._id;
+              setTimeout(() => router.push(`/order-success?orderId=${orderId}`), 1500);
+            } else {
+              toast.error(verifyData.error || "Payment verification failed");
+            }
+          } catch (error) {
+            console.error("Verification error:", error);
             toast.error("Payment verification failed");
           }
         },
-        prefill: { name: customerName, email: user?.email, contact: customerPhone },
+        prefill: { 
+          name: customerName, 
+          email: user?.email, 
+          contact: customerPhone 
+        },
         theme: { color: "#000000" },
+        modal: {
+          ondismiss: function() {
+            toast.error("Payment cancelled");
+            setPlacing(false);
+          }
+        }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
       console.error("Razorpay Error:", error);
-      toast.error("Payment failed");
+      toast.error(error.message || "Payment failed");
     } finally {
       setPlacing(false);
     }
@@ -201,7 +232,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = () => {
     if (!isFormValid()) return;
     if (!validateStockBeforeOrder()) return;
-    paymentMethod === "cod" ? handleCOD() : handleRazorpay();
+    handleRazorpay(); // ✅ Only Razorpay - no COD
   };
 
   if (loading) return (
@@ -240,8 +271,8 @@ export default function CheckoutPage() {
             customerName={customerName} 
             customerPhone={customerPhone}
             email={user?.email}
-            paymentMethod={paymentMethod} 
-            setPaymentMethod={setPaymentMethod}
+            paymentMethod="razorpay" // ✅ Fixed to razorpay
+            setPaymentMethod={() => {}} // ✅ Empty function since no COD
             placing={placing} 
             onPlaceOrder={handlePlaceOrder}
           />
