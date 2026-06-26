@@ -96,7 +96,8 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const orderPayload = {
+  // ✅ Prepare order data (but DON'T create order yet)
+  const getOrderData = () => ({
     items: cart.map((item) => ({ 
       product: item._id || item.id, 
       quantity: item.quantity,
@@ -111,7 +112,8 @@ export default function CheckoutPage() {
     shippingCost: shippingCost,
     total: total,
     address: { ...address, phone: customerPhone, name: customerName },
-  };
+    notes: "",
+  });
 
   // ── Load Razorpay script ─────────────────────────
   const loadRazorpay = () => new Promise((resolve) => {
@@ -122,12 +124,15 @@ export default function CheckoutPage() {
     document.body.appendChild(script);
   });
 
-  // ── Razorpay Flow ────────────────────────────────
+  // ── Razorpay Flow (Order created AFTER payment) ──
   const handleRazorpay = async () => {
     if (!validateStockBeforeOrder()) return;
+    if (!isFormValid()) return;
     
     try {
       setPlacing(true);
+      
+      // ✅ Load Razorpay
       const loaded = await loadRazorpay();
       if (!loaded) { 
         toast.error("Razorpay failed to load"); 
@@ -135,24 +140,8 @@ export default function CheckoutPage() {
         return; 
       }
 
-      // ✅ Create order first
-      const orderRes = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          ...orderPayload, 
-          paymentMethod: "razorpay", 
-          paymentStatus: "pending" 
-        }),
-      });
-      
-      const orderData = await orderRes.json();
-      if (!orderRes.ok) {
-        throw new Error(orderData.error || "Failed to create order");
-      }
-      
-      const order = orderData.order || orderData;
-      console.log("✅ Order created:", order._id);
+      // ✅ Prepare order data (but don't save to DB yet)
+      const orderData = getOrderData();
 
       // ✅ Create Razorpay payment order
       const paymentRes = await fetch("/api/payment/create-order", {
@@ -160,7 +149,6 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           amount: total,
-          orderId: order._id 
         }),
       });
       
@@ -180,13 +168,13 @@ export default function CheckoutPage() {
         order_id: razorpayOrder.id,
         handler: async (response) => {
           try {
+            // ✅ Verify payment AND create order in one step
             const verifyRes = await fetch("/api/payment/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ 
                 ...response, 
-                orderData: orderPayload,
-                orderId: order._id,
+                orderData: orderData, // ✅ Pass order data to create order after verification
               }),
             });
             
@@ -195,14 +183,16 @@ export default function CheckoutPage() {
             if (verifyData.success) {
               toast.success("Payment successful 🎉");
               clearCart();
-              const orderId = verifyData.orderId || order._id;
+              const orderId = verifyData.orderId;
               setTimeout(() => router.push(`/order-success?orderId=${orderId}`), 1500);
             } else {
               toast.error(verifyData.error || "Payment verification failed");
+              setPlacing(false);
             }
           } catch (error) {
             console.error("Verification error:", error);
             toast.error("Payment verification failed");
+            setPlacing(false);
           }
         },
         prefill: { 
@@ -213,6 +203,7 @@ export default function CheckoutPage() {
         theme: { color: "#000000" },
         modal: {
           ondismiss: function() {
+            // ✅ User closed the payment modal - NO order is created
             toast.error("Payment cancelled");
             setPlacing(false);
           }
@@ -224,7 +215,6 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error("Razorpay Error:", error);
       toast.error(error.message || "Payment failed");
-    } finally {
       setPlacing(false);
     }
   };
@@ -271,8 +261,8 @@ export default function CheckoutPage() {
             customerName={customerName} 
             customerPhone={customerPhone}
             email={user?.email}
-            paymentMethod="razorpay" // ✅ Fixed to razorpay
-            setPaymentMethod={() => {}} // ✅ Empty function since no COD
+            paymentMethod="razorpay"
+            setPaymentMethod={() => {}}
             placing={placing} 
             onPlaceOrder={handlePlaceOrder}
           />
