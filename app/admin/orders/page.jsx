@@ -156,53 +156,137 @@ export default function AdminOrders() {
     }
   };
 
-  // ✅ Enhanced CSV Export with more fields
+  // ✅ Complete CSV Export with all data
   const downloadOrdersCSV = () => {
     const headers = [
-      "Order ID", 
-      "Date", 
-      "Customer", 
-      "Mobile", 
-      "Subtotal", 
-      "Shipping", 
-      "Total", 
-      "Payment Method", 
-      "Payment Status", 
-      "Status", 
-      "Items",
-      "Product Names"
+      "Order ID",
+      "Order Date",
+      "Order Time",
+      "Customer Name",
+      "Customer Email",
+      "Customer Phone",
+      "Address Line",
+      "City",
+      "State",
+      "Pincode",
+      "Payment Method",
+      "Payment Status",
+      "Order Status",
+      "Subtotal (₹)",
+      "Shipping Cost (₹)",
+      "Total (₹)",
+      "Items Count",
+      "Product Names",
+      "Product Quantities",
+      "Product Prices (₹)",
+      "Product Total (₹)",
+      "Product SKUs",
+      "Selected Size",
+      "Selected Color",
+      "Shipping Cost Per Item (₹)",
+      "Order Notes",
+      "Tracking Number",
+      "Razorpay Order ID",
+      "Razorpay Payment ID"
     ];
     
     const rows = filteredOrders.map(order => {
+      // Get all product details as arrays
       const productNames = order.items?.map(item => 
         item.product?.name || item.productName || "Product"
-      ).join("; ") || "N/A";
+      ).join(" | ") || "N/A";
+      
+      const productQuantities = order.items?.map(item => 
+        item.quantity || 0
+      ).join(" | ") || "N/A";
+      
+      const productPrices = order.items?.map(item => 
+        item.product?.price || item.productPrice || 0
+      ).join(" | ") || "N/A";
+      
+      const productTotals = order.items?.map(item => 
+        (item.product?.price || item.productPrice || 0) * (item.quantity || 0)
+      ).join(" | ") || "N/A";
+      
+      const productSKUs = order.items?.map(item => 
+        item.product?.sku || "N/A"
+      ).join(" | ") || "N/A";
+      
+      const selectedSizes = order.items?.map(item => 
+        item.selectedSize || "N/A"
+      ).join(" | ") || "N/A";
+      
+      const selectedColors = order.items?.map(item => 
+        item.selectedColor || "N/A"
+      ).join(" | ") || "N/A";
+      
+      const shippingPerItem = order.items?.map(item => 
+        item.shippingCost || 0
+      ).join(" | ") || "N/A";
       
       return [
-        order._id.slice(-8),
+        // Order Info
+        order.orderId || order._id.slice(-8),
         new Date(order.createdAt).toLocaleDateString(),
+        new Date(order.createdAt).toLocaleTimeString(),
+        
+        // Customer Info
         order.address?.name || order.user?.name || "N/A",
+        order.user?.email || "N/A",
         order.address?.phone || "N/A",
-        order.subtotal || order.total || 0,
-        order.shippingCost || 0,
-        order.total || 0,
+        
+        // Address
+        order.address?.addressLine || "N/A",
+        order.address?.city || "N/A",
+        order.address?.state || "N/A",
+        order.address?.pincode || "N/A",
+        
+        // Payment
         order.paymentMethod?.toUpperCase() || "N/A",
         order.paymentStatus || "N/A",
         order.status || "N/A",
+        
+        // Pricing
+        order.subtotal || 0,
+        order.shippingCost || 0,
+        order.total || 0,
+        
+        // Items
         order.items?.length || 0,
-        productNames,
+        `"${productNames}"`,
+        `"${productQuantities}"`,
+        `"${productPrices}"`,
+        `"${productTotals}"`,
+        `"${productSKUs}"`,
+        `"${selectedSizes}"`,
+        `"${selectedColors}"`,
+        `"${shippingPerItem}"`,
+        
+        // Additional Info
+        order.notes || "",
+        order.trackingNumber || "",
+        order.razorpay_order_id || "",
+        order.razorpay_payment_id || "",
       ];
     });
 
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
+    // Create CSV content with proper quoting
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `orders_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Orders exported!");
+    toast.success(`${filteredOrders.length} orders exported successfully!`);
   };
 
   const getProductImage = (product) => {
@@ -323,7 +407,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Same as before */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <StatCard 
           label="Total Orders" 
@@ -407,7 +491,7 @@ export default function AdminOrders() {
         </select>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search and Filters - Same as before */}
       <div className="bg-gray-800 rounded-xl p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           <input
@@ -607,7 +691,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Orders List - Keep the same as before */}
+      {/* Orders List */}
       {currentOrders.length === 0 ? (
         <div className="text-center py-12 bg-gray-800 rounded-xl">
           <p className="text-gray-400">No orders found</p>
@@ -618,7 +702,7 @@ export default function AdminOrders() {
             const productImage = getProductImage(order.items?.[0]?.product);
             return (
               <div key={order._id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
-                {/* Compact Row */}
+                {/* Compact Row - Same as before */}
                 <div
                   className="flex flex-wrap items-center gap-3 p-4 cursor-pointer hover:bg-gray-750 transition"
                   onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)}
@@ -705,7 +789,7 @@ export default function AdminOrders() {
                   </span>
                 </div>
 
-                {/* Expanded Details */}
+                {/* Expanded Details - Same as before */}
                 {expandedOrder === order._id && (
                   <div className="border-t border-gray-700 p-4 space-y-4 bg-gray-900">
                     <div className="flex flex-wrap gap-4 text-xs">
