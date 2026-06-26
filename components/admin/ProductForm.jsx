@@ -96,6 +96,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
     });
   };
 
+  // ✅ Add variation
   const addVariation = (variation) => {
     setProduct(prev => ({
       ...prev,
@@ -103,10 +104,21 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
     }));
   };
 
+  // ✅ Remove variation
   const removeVariation = (index) => {
     setProduct(prev => ({
       ...prev,
       variations: prev.variations.filter((_, i) => i !== index),
+    }));
+  };
+
+  // ✅ UPDATE variation (NEW)
+  const updateVariation = (index, updatedVariation) => {
+    setProduct(prev => ({
+      ...prev,
+      variations: prev.variations.map((v, i) => 
+        i === index ? updatedVariation : v
+      )
     }));
   };
 
@@ -171,12 +183,12 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       sizes: product.sizes ? product.sizes.split(",").map(s => s.trim()).filter(s => s) : [],
       categories: product.categories,
       images: product.images,
-      variations: product.variations,
+      variations: product.variations, // ✅ Variations are included
     };
 
     console.log("Submitting product:", submitData);
 
-    // ✅ FIXED: Use admin API instead of public API
+    // ✅ Use admin API
     const url = isEdit 
       ? `/api/admin/products/${existingProduct._id}` 
       : "/api/admin/products";
@@ -187,7 +199,7 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ Important for admin authentication
+        credentials: "include",
         body: JSON.stringify(submitData),
       });
 
@@ -229,10 +241,12 @@ export default function ProductForm({ isEdit = false, existingProduct = null }) 
         handleChange={handleChange} 
       />
       
+      {/* ✅ Updated ProductVariations with edit support */}
       <ProductVariations 
         product={product}
         onAddVariation={addVariation}
         onRemoveVariation={removeVariation}
+        onUpdateVariation={updateVariation}  // ✅ NEW: Pass update function
       />
       
       <ProductCategories 
