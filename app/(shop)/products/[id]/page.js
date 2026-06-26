@@ -19,8 +19,7 @@ export default function ProductPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedVariation, setSelectedVariation] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,10 +28,13 @@ export default function ProductPage() {
         const res = await fetch(`/api/products/${id}`);
         const data = await res.json();
         setProduct(data);
-        if (data.sizes?.length) setSelectedSize(data.sizes[0]);
-        if (data.colors?.length) setSelectedColor(data.colors[0]);
         
-        // ✅ Set initial quantity to min order quantity
+        // ✅ Set default variation if available
+        if (data.variations?.length > 0) {
+          const inStock = data.variations.find(v => v.stock > 0);
+          setSelectedVariation(inStock || data.variations[0]);
+        }
+        
         if (data.minOrderQuantity) {
           setQty(data.minOrderQuantity);
         }
@@ -46,9 +48,17 @@ export default function ProductPage() {
     if (id) fetchProduct();
   }, [id]);
 
-  // ✅ Quantity handlers with min/max limits
+  const selectVariation = (variation) => {
+    if (variation.stock === 0) {
+      toast.error("This variation is out of stock!");
+      return;
+    }
+    setSelectedVariation(variation);
+    toast.success(`Selected: Size ${variation.size} • Color ${variation.color}`);
+  };
+
   const increaseQty = () => {
-    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, selectedVariation?.stock || product?.stock || 0);
     if (qty < maxQty) {
       setQty(qty + 1);
     } else {
@@ -66,14 +76,14 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = () => {
-    if (product?.stock === 0) {
+    const currentStock = selectedVariation?.stock || product?.stock || 0;
+    if (currentStock === 0) {
       toast.error("Out of stock!");
       return;
     }
     
-    // ✅ Validate quantity limits
     const minQty = product?.minOrderQuantity || 1;
-    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, currentStock);
     
     if (qty < minQty) {
       toast.error(`Minimum ${minQty} unit required`);
@@ -84,12 +94,18 @@ export default function ProductPage() {
       return;
     }
     
+    const priceToUse = selectedVariation?.price || product?.price;
+    
+    const cartItem = {
+      ...product,
+      price: priceToUse,
+      selectedSize: selectedVariation?.size,
+      selectedColor: selectedVariation?.color,
+      variation: selectedVariation,
+    };
+    
     for (let i = 0; i < qty; i++) {
-      addToCart({
-        ...product,
-        selectedSize,
-        selectedColor,
-      });
+      addToCart(cartItem);
     }
     setShowPopup(true);
     toast.success(`Added ${qty} item(s) to cart!`);
@@ -99,14 +115,14 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = () => {
-    if (product?.stock === 0) {
+    const currentStock = selectedVariation?.stock || product?.stock || 0;
+    if (currentStock === 0) {
       toast.error("Out of stock!");
       return;
     }
     
-    // ✅ Validate quantity limits
     const minQty = product?.minOrderQuantity || 1;
-    const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+    const maxQty = Math.min(product?.maxOrderQuantity || 5, currentStock);
     
     if (qty < minQty) {
       toast.error(`Minimum ${minQty} unit required`);
@@ -117,12 +133,18 @@ export default function ProductPage() {
       return;
     }
     
+    const priceToUse = selectedVariation?.price || product?.price;
+    
+    const cartItem = {
+      ...product,
+      price: priceToUse,
+      selectedSize: selectedVariation?.size,
+      selectedColor: selectedVariation?.color,
+      variation: selectedVariation,
+    };
+    
     for (let i = 0; i < qty; i++) {
-      addToCart({
-        ...product,
-        selectedSize,
-        selectedColor,
-      });
+      addToCart(cartItem);
     }
     router.push("/checkout");
   };
@@ -133,18 +155,18 @@ export default function ProductPage() {
   };
 
   const calculateDiscount = () => {
-    if (product?.mrp && product?.price && product.mrp > product.price) {
-      return Math.round(((product.mrp - product.price) / product.mrp) * 100);
+    const currentPrice = selectedVariation?.price || product?.price || 0;
+    if (product?.mrp && product.mrp > currentPrice) {
+      return Math.round(((product.mrp - currentPrice) / product.mrp) * 100);
     }
     return 0;
   };
 
   const isPremium = product?.price > 2000 || product?.isPremium;
   const discount = calculateDiscount();
-  const isOutOfStock = product?.stock === 0;
+  const currentStock = selectedVariation?.stock || product?.stock || 0;
   const images = product?.images || [];
 
-  // Generate GOLD stars
   const renderStars = (rating = 5) => {
     const stars = [];
     for (let i = 0; i < rating; i++) {
@@ -160,7 +182,6 @@ export default function ProductPage() {
     return stars;
   };
 
-  // Parse description to preserve formatting from admin
   const formatDescription = (text) => {
     if (!text) return "No description available";
     
@@ -211,13 +232,13 @@ export default function ProductPage() {
   }
 
   const minQty = product?.minOrderQuantity || 1;
-  const maxQty = Math.min(product?.maxOrderQuantity || 5, product?.stock || 0);
+  const maxQty = Math.min(product?.maxOrderQuantity || 5, currentStock);
   const shippingCost = product?.shippingCost || 0;
+  const currentPrice = selectedVariation?.price || product?.price;
 
   return (
     <div className="min-h-screen bg-white py-8 px-4 md:px-8">
 
-      {/* POPUP */}
       {showPopup && (
         <div className="fixed top-6 right-6 z-50 bg-black text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce">
           <CheckCircle size={20} />
@@ -231,9 +252,8 @@ export default function ProductPage() {
           {/* LEFT SIDE - IMAGE */}
           <div className="bg-gray-100 rounded-2xl overflow-hidden">
             <div className="relative">
-              {/* Badges */}
               <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                {isOutOfStock ? (
+                {currentStock === 0 ? (
                   <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full">Out of Stock</span>
                 ) : (
                   <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full">In Stock</span>
@@ -248,7 +268,6 @@ export default function ProductPage() {
                 </div>
               )}
               
-              {/* Main Image */}
               <div className="flex items-center justify-center p-8">
                 {images.length > 0 ? (
                   <img
@@ -264,7 +283,6 @@ export default function ProductPage() {
               </div>
             </div>
             
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex gap-2 p-4 overflow-x-auto border-t border-gray-200">
                 {images.map((img, idx) => (
@@ -285,35 +303,30 @@ export default function ProductPage() {
           {/* RIGHT SIDE - PRODUCT INFO */}
           <div className="flex flex-col space-y-4">
             
-            {/* Category */}
             <p className="text-sm uppercase text-gray-500">
               {product.categories?.[0]?.name || "PREMIUM COLLECTION"}
             </p>
 
-            {/* Title */}
             <h1 className="text-xl md:text-2xl font-medium text-gray-800">
               {product.name}
             </h1>
 
-            {/* Stars - GOLD COLOR */}
             <div className="flex items-center gap-1">
               {renderStars()}
             </div>
 
-            {/* Price */}
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-black">₹{product.price}</span>
-              {product.mrp && product.mrp > product.price && (
+              <span className="text-3xl font-bold text-black">₹{currentPrice}</span>
+              {product.mrp && product.mrp > currentPrice && (
                 <>
                   <span className="text-lg text-gray-400 line-through">₹{product.mrp}</span>
                   <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                    Save ₹{product.mrp - product.price}
+                    Save ₹{product.mrp - currentPrice}
                   </span>
                 </>
               )}
             </div>
 
-            {/* ✅ Shipping Cost Display */}
             <div className="flex items-center gap-2">
               <Truck size={16} className="text-yellow-500" />
               <span className="text-sm text-gray-600">
@@ -321,7 +334,6 @@ export default function ProductPage() {
               </span>
             </div>
 
-            {/* Description */}
             <div>
               <p className="font-medium text-gray-800 mb-2">Product Details:</p>
               <div className="text-sm text-gray-600">
@@ -351,104 +363,101 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Size, Color, Quantity - Side by Side */}
-            <div className="grid grid-cols-3 gap-3">
-              {product.sizes?.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-700 mb-1">Size</p>
-                  <div className="flex flex-wrap gap-1">
-                    {product.sizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-3 py-1 rounded-full border text-xs transition ${
-                          selectedSize === size
-                            ? "bg-black text-white border-black"
-                            : "border-gray-300 text-gray-700 hover:border-yellow-500"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {product.colors?.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-700 mb-1">Color</p>
-                  <div className="flex flex-wrap gap-1">
-                    {product.colors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`px-3 py-1 rounded-full border text-xs transition ${
-                          selectedColor === color
-                            ? "bg-black text-white border-black"
-                            : "border-gray-300 text-gray-700 hover:border-yellow-500"
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ✅ Quantity with Min/Max Display */}
-              <div>
-                <p className="text-xs font-medium text-gray-700 mb-1">
-                  Qty <span className="text-gray-400 font-normal">(Min: {minQty})</span>
-                </p>
-                <div className="flex items-center border border-gray-300 rounded-full w-fit">
-                  <button
-                    onClick={decreaseQty}
-                    disabled={qty <= minQty || isOutOfStock}
-                    className={`px-3 py-1 text-lg rounded-l-full ${
-                      qty <= minQty || isOutOfStock ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    -
-                  </button>
-                  <span className="px-3 text-sm min-w-[40px] text-center">{qty}</span>
-                  <button
-                    onClick={increaseQty}
-                    disabled={qty >= maxQty || isOutOfStock || maxQty === 0}
-                    className={`px-3 py-1 text-lg rounded-r-full ${
-                      qty >= maxQty || isOutOfStock || maxQty === 0 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">
-                  Min: {minQty} | Max: {maxQty > 0 ? maxQty : 'Unlimited'}
-                </p>
-              </div>
-            </div>
-
-            {/* ✅ Variations Display */}
+            {/* ✅ VARIATIONS - SHOW EXACTLY WHAT ADMIN ADDED */}
             {product?.variations?.length > 0 && (
               <div>
-                <h3 className="text-xs font-medium text-gray-700 mb-1">Available Variations</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.variations.slice(0, 4).map((variation, idx) => (
-                    <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                      {variation.size} / {variation.color} {variation.stock > 0 ? `(${variation.stock})` : '❌'}
-                    </span>
-                  ))}
-                  {product.variations.length > 4 && (
-                    <span className="text-xs text-gray-400">+{product.variations.length - 4} more</span>
-                  )}
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  Available Variations ({product.variations.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {product.variations.map((variation, idx) => {
+                    const isSelected = selectedVariation === variation || 
+                      (selectedVariation?.size === variation.size && 
+                       selectedVariation?.color === variation.color);
+                    
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => selectVariation(variation)}
+                        className={`p-3 rounded-lg border-2 text-left transition ${
+                          isSelected
+                            ? "border-yellow-500 bg-yellow-50"
+                            : "border-gray-200 hover:border-yellow-300 hover:bg-gray-50"
+                        } ${variation.stock === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+                        disabled={variation.stock === 0}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">
+                              Size: {variation.size} | Color: {variation.color}
+                            </p>
+                            <p className="text-sm font-semibold text-black mt-1">
+                              ₹{variation.price || product.price}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {/* ✅ ONLY In Stock / Out of Stock */}
+                            <p className={`text-xs font-medium ${
+                              variation.stock > 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {variation.stock > 0 ? '✅ In Stock' : '❌ Out of Stock'}
+                            </p>
+                            {isSelected && (
+                              <span className="text-xs text-yellow-600 font-medium">✓ Selected</span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
+                
+                {selectedVariation && (
+                  <div className="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-700">
+                      ✅ Selected: Size {selectedVariation.size} • Color {selectedVariation.color} • ₹{selectedVariation.price || product.price}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Stock */}
+            {/* ✅ QUANTITY */}
+            <div>
+              <p className="text-xs font-medium text-gray-700 mb-1">
+                Qty <span className="text-gray-400 font-normal">(Min: {minQty})</span>
+              </p>
+              <div className="flex items-center border border-gray-300 rounded-full w-fit">
+                <button
+                  onClick={decreaseQty}
+                  disabled={qty <= minQty || currentStock === 0}
+                  className={`px-3 py-1 text-lg rounded-l-full ${
+                    qty <= minQty || currentStock === 0 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  -
+                </button>
+                <span className="px-3 text-sm min-w-[40px] text-center">{qty}</span>
+                <button
+                  onClick={increaseQty}
+                  disabled={qty >= maxQty || currentStock === 0 || maxQty === 0}
+                  className={`px-3 py-1 text-lg rounded-r-full ${
+                    qty >= maxQty || currentStock === 0 || maxQty === 0 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Min: {minQty} | Max: {maxQty > 0 ? maxQty : 'Unlimited'}
+              </p>
+            </div>
+
+            {/* ✅ STOCK STATUS - ONLY In Stock / Out of Stock */}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isOutOfStock ? "bg-red-500" : "bg-green-500"}`}></div>
-              <span className={`text-sm ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
-                {isOutOfStock ? "Out of Stock" : `${product.stock} units left`}
+              <div className={`w-2 h-2 rounded-full ${currentStock === 0 ? "bg-red-500" : "bg-green-500"}`}></div>
+              <span className={`text-sm font-medium ${currentStock === 0 ? "text-red-600" : "text-green-600"}`}>
+                {currentStock === 0 ? "Out of Stock" : "In Stock"}
               </span>
             </div>
 
@@ -456,25 +465,25 @@ export default function ProductPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={currentStock === 0}
                 className={`flex-1 py-3 rounded-full font-semibold transition ${
-                  isOutOfStock
+                  currentStock === 0
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-black text-white hover:bg-gray-800"
                 }`}
               >
-                {isOutOfStock ? "Out of Stock" : `Add to Cart — ₹${product.price * qty}`}
+                {currentStock === 0 ? "Out of Stock" : `Add to Cart — ₹${currentPrice * qty}`}
               </button>
               <button
                 onClick={handleBuyNow}
-                disabled={isOutOfStock}
+                disabled={currentStock === 0}
                 className={`flex-1 py-3 rounded-full font-semibold transition border-2 ${
-                  isOutOfStock
+                  currentStock === 0
                     ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
                     : "border-black hover:bg-black hover:text-white"
                 }`}
               >
-                {isOutOfStock ? "Out of Stock" : "Buy Now"}
+                {currentStock === 0 ? "Out of Stock" : "Buy Now"}
               </button>
             </div>
 
