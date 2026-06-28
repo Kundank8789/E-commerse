@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function CartPage() {
-   const router = useRouter(); 
+  const router = useRouter();
   const {
     cart,
     removeFromCart,
@@ -30,6 +30,14 @@ export default function CartPage() {
     0
   );
 
+  // ✅ Get variation display text
+  const getVariationText = (item) => {
+    const parts = [];
+    if (item.selectedSize) parts.push(`Size: ${item.selectedSize}`);
+    if (item.selectedColor) parts.push(`Color: ${item.selectedColor}`);
+    return parts.length > 0 ? parts.join(' | ') : null;
+  };
+
   const handlePlaceOrder = async () => {
     try {
       setLoading(true);
@@ -37,6 +45,8 @@ export default function CartPage() {
       const items = cart.map((item) => ({
         product: item._id,
         quantity: item.quantity,
+        selectedSize: item.selectedSize || '',
+        selectedColor: item.selectedColor || '',
       }));
 
       const res = await fetch("/api/orders", {
@@ -87,74 +97,86 @@ export default function CartPage() {
           {/* LEFT */}
           <div className="md:col-span-2 space-y-6">
 
-            {cart.map((item, index) => (
-              <div
-                key={index}
-                className="flex gap-4 bg-white border border-gray-200 shadow-sm p-4 rounded-2xl items-center hover:shadow-md transition"
-              >
-
-                {/* IMAGE */}
-                {item.images?.[0] ? (
-                  <Image
-                    src={item.images[0]}
-                    alt={item.name}
-                    width={100}
-                    height={100}
-                    className="rounded-xl object-cover border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-[100px] h-[100px] bg-gray-700 flex items-center justify-center text-xs rounded-lg">
-                    No Image
-                  </div>
-                )}
-
-                {/* INFO */}
-                <div className="flex-1">
-                  <h2 className="font-semibold">{item.name}</h2>
-                  <p className="text-gray-500 text-sm mt-1">₹{item.price}</p>
-
-                  {/* QUANTITY */}
-                  <div className="flex items-center gap-3 mt-3">
-
-                    <button
-                      onClick={() => decreaseQty(item)}
-                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
-                    >
-                      -
-                    </button>
-
-                    <span  className="font-semibold min-w-[20px] text-center">{item.quantity}</span>
-
-                    <button
-                      onClick={() => {
-                        addToCart(item);
-                        toast.success("Quantity updated 🛒");
-                      }}
-                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
-                    >
-                      +
-                    </button>
-
-                  </div>
-                </div>
-
-                {/* REMOVE */}
-                <button
-                  onClick={() => {
-                    removeFromCart(item);
-                    toast.success("Removed from cart");
-                  }}
-                  className="text-red-500 hover:text-red-700 transition cursor-pointer"
+            {cart.map((item, index) => {
+              const variationText = getVariationText(item);
+              
+              return (
+                <div
+                  key={index}
+                  className="flex gap-4 bg-white border border-gray-200 shadow-sm p-4 rounded-2xl items-center hover:shadow-md transition"
                 >
-                  <FaTrash />
-                </button>
 
-              </div>
-            ))}
+                  {/* IMAGE */}
+                  {item.images?.[0] ? (
+                    <Image
+                      src={item.images[0]}
+                      alt={item.name}
+                      width={100}
+                      height={100}
+                      className="rounded-xl object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-[100px] h-[100px] bg-gray-700 flex items-center justify-center text-xs rounded-lg">
+                      No Image
+                    </div>
+                  )}
+
+                  {/* INFO */}
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-sm md:text-base">{item.name}</h2>
+                    
+                    {/* ✅ SHOW VARIATION DETAILS */}
+                    {variationText && (
+                      <p className="text-xs text-gray-500 mt-1 bg-gray-50 px-2 py-1 rounded inline-block">
+                        {variationText}
+                      </p>
+                    )}
+                    
+                    <p className="text-gray-500 text-sm mt-1">₹{item.price}</p>
+
+                    {/* QUANTITY */}
+                    <div className="flex items-center gap-3 mt-3">
+
+                      <button
+                        onClick={() => decreaseQty(item)}
+                        className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
+                      >
+                        -
+                      </button>
+
+                      <span className="font-semibold min-w-[20px] text-center">{item.quantity}</span>
+
+                      <button
+                        onClick={() => {
+                          addToCart(item);
+                          toast.success("Quantity updated 🛒");
+                        }}
+                        className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition"
+                      >
+                        +
+                      </button>
+
+                    </div>
+                  </div>
+
+                  {/* REMOVE */}
+                  <button
+                    onClick={() => {
+                      removeFromCart(item);
+                      toast.success("Removed from cart");
+                    }}
+                    className="text-red-500 hover:text-red-700 transition cursor-pointer"
+                  >
+                    <FaTrash />
+                  </button>
+
+                </div>
+              );
+            })}
 
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT - Order Summary */}
           <div className="bg-white border border-gray-200 shadow-sm p-6 rounded-2xl h-fit sticky top-24">
 
             <h2 className="text-xl font-semibold mb-4">

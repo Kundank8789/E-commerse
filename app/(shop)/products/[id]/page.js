@@ -27,12 +27,55 @@ export default function ProductPage() {
       try {
         const res = await fetch(`/api/products/${id}`);
         const data = await res.json();
-        setProduct(data);
         
-        // ✅ Set default variation if available
-        if (data.variations?.length > 0) {
-          const inStock = data.variations.find(v => v.stock > 0);
-          setSelectedVariation(inStock || data.variations[0]);
+        console.log("📦 Product data:", data);
+        console.log("📦 Variations:", data.variations);
+        console.log("📦 Colors:", data.colors);
+        console.log("📦 Sizes:", data.sizes);
+        
+        let allVariations = [];
+        
+        // ✅ If variations exist, use them
+        if (data.variations && data.variations.length > 0) {
+          allVariations = data.variations;
+          console.log("✅ Using variations from API:", allVariations.length);
+        } 
+        // ✅ Otherwise, create variations from colors and sizes
+        else if (data.colors && data.colors.length > 0 && data.sizes && data.sizes.length > 0) {
+          console.log("🔄 Creating variations from colors and sizes");
+          for (const size of data.sizes) {
+            for (const color of data.colors) {
+              allVariations.push({
+                size: size,
+                color: color,
+                stock: data.stock || 0,
+                price: data.price || 0,
+              });
+            }
+          }
+          console.log("✅ Created", allVariations.length, "variations");
+        }
+        
+        // ✅ If still no variations, create a default one
+        if (allVariations.length === 0 && data.stock !== undefined) {
+          console.log("🔄 Creating default variation");
+          allVariations = [{
+            size: "Default",
+            color: "Default",
+            stock: data.stock || 0,
+            price: data.price || 0,
+          }];
+        }
+        
+        setProduct({
+          ...data,
+          variations: allVariations,
+        });
+        
+        // Set default variation
+        if (allVariations.length > 0) {
+          const inStock = allVariations.find(v => v.stock > 0);
+          setSelectedVariation(inStock || allVariations[0]);
         }
         
         if (data.minOrderQuantity) {
@@ -396,7 +439,6 @@ export default function ProductPage() {
                             </p>
                           </div>
                           <div className="text-right">
-                            {/* ✅ ONLY In Stock / Out of Stock */}
                             <p className={`text-xs font-medium ${
                               variation.stock > 0 ? 'text-green-600' : 'text-red-600'
                             }`}>

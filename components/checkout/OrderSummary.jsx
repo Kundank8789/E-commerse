@@ -19,11 +19,25 @@ export default function OrderSummary({
           const itemShipping = item.shippingCost || 0;
           const itemTotal = item.price * item.quantity;
           
+          // ✅ Get variation details
+          const variationParts = [];
+          if (item.selectedSize) variationParts.push(`Size: ${item.selectedSize}`);
+          if (item.selectedColor) variationParts.push(`Color: ${item.selectedColor}`);
+          const variationText = variationParts.join(' | ');
+          
           return (
             <div key={item._id} className="border-b border-gray-100 pb-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <p className="font-medium text-black">{item.name}</p>
+                  
+                  {/* ✅ SHOW VARIATION DETAILS */}
+                  {variationText && (
+                    <p className="text-xs text-gray-500 mt-0.5 bg-gray-50 px-2 py-0.5 rounded inline-block">
+                      {variationText}
+                    </p>
+                  )}
+                  
                   <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <span className="text-xs text-gray-400">Shipping:</span>
