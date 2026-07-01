@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GoogleAnalytics } from '@next/third-parties/google'; // ← ADD THIS LINE
-
+import { GoogleAnalytics } from '@next/third-parties/google';
 import Providers from "@/components/Providers";
 import { Toaster } from "react-hot-toast";
 
@@ -17,10 +16,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyStore",
-  description: "Modern E-commerce Store",
+  title: "Niwle - Premium Fashion & Jewellery",
+  description: "Premium fashion & jewellery for modern lifestyle. Designed for elegance, crafted for you.",
   verification: {
     google: "MPwwNhKwHRbs5B4ThxHboTznHJSGFx6k1FvGV9fA-t8",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },
+    ],
   },
 };
 
@@ -37,12 +47,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col w-full overflow-x-hidden bg-white text-black">
         <Providers>
-          {/* MAIN CONTENT */}
           <main className="flex-1 w-full">
             {children}
           </main>
-
-          {/* TOAST */}
           <Toaster
             position="top-right"
             toastOptions={{
@@ -57,7 +64,6 @@ export default function RootLayout({
           />
         </Providers>
       </body>
-      {/* ← ADD THIS GOOGLE ANALYTICS COMPONENT */}
       <GoogleAnalytics gaId="G-MLCCBFBW49" />
     </html>
   );
