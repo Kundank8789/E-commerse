@@ -15,14 +15,27 @@ export default function Categories() {
   const scrollLeft = useRef(0);
   const dragMoved = useRef(false);
 
+  // State for touch/mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     fetchCategories();
+    
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const fetchCategories = async () => {
     const res = await fetch("/api/categories");
     const data = await res.json();
-    console.log("Categories loaded:", data); // Debug: Check what data has image
+    console.log("Categories loaded:", data);
     setCategories(data);
   };
 
@@ -45,7 +58,9 @@ export default function Categories() {
     }
   };
 
+  // Mouse events (for desktop)
   const onMouseDown = (e) => {
+    if (isMobile) return; // Disable on mobile
     isDragging.current = true;
     dragMoved.current = false;
     startX.current = e.pageX - outerRef.current.offsetLeft;
@@ -55,7 +70,7 @@ export default function Categories() {
   };
 
   const onMouseMove = (e) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current || isMobile) return;
     e.preventDefault();
     dragMoved.current = true;
     const x = e.pageX - outerRef.current.offsetLeft;
@@ -64,6 +79,7 @@ export default function Categories() {
   };
 
   const onMouseUp = () => {
+    if (isMobile) return;
     isDragging.current = false;
     outerRef.current.style.cursor = "grab";
     innerRef.current.style.animationPlayState = "running";
@@ -71,6 +87,7 @@ export default function Categories() {
   };
 
   const onMouseLeave = () => {
+    if (isMobile) return;
     if (isDragging.current) {
       isDragging.current = false;
       outerRef.current.style.cursor = "grab";
@@ -79,16 +96,20 @@ export default function Categories() {
     }
   };
 
+  // Touch events (for mobile)
   const onTouchStart = (e) => {
     dragMoved.current = false;
-    startX.current = e.touches[0].pageX - outerRef.current.offsetLeft;
+    const touch = e.touches[0];
+    startX.current = touch.pageX - outerRef.current.offsetLeft;
     scrollLeft.current = outerRef.current.scrollLeft;
     innerRef.current.style.animationPlayState = "paused";
   };
 
   const onTouchMove = (e) => {
+    e.preventDefault(); // Prevent page scroll while dragging
     dragMoved.current = true;
-    const x = e.touches[0].pageX - outerRef.current.offsetLeft;
+    const touch = e.touches[0];
+    const x = touch.pageX - outerRef.current.offsetLeft;
     const walk = (x - startX.current) * 1.5;
     outerRef.current.scrollLeft = scrollLeft.current - walk;
   };
@@ -98,30 +119,46 @@ export default function Categories() {
     resetScrollIfNeeded();
   };
 
+  // For mobile: pause animation on touch start
+  const handleTouchStart = (e) => {
+    onTouchStart(e);
+  };
+
   return (
-    <section className="bg-white text-black py-16">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-wide">
+    <section className="bg-white text-black py-8 md:py-16 px-4 md:px-0">
+      <div className="text-center mb-8 md:mb-12">
+        <h2 className="text-2xl md:text-5xl font-bold tracking-wide">
           SHOP BY CATEGORY
         </h2>
-        <div className="w-28 h-[3px] bg-yellow-600 mx-auto mt-4 rounded-full" />
+        <div className="w-20 md:w-28 h-[3px] bg-yellow-600 mx-auto mt-3 md:mt-4 rounded-full" />
       </div>
 
       <div
         ref={outerRef}
-        className="w-full overflow-x-scroll py-4 select-none hide-scroll"
-        style={{ cursor: "grab" }}
+        className="w-full overflow-x-scroll py-3 md:py-4 select-none hide-scroll touch-pan-x"
+        style={{ 
+          cursor: isMobile ? "default" : "grab",
+          WebkitOverflowScrolling: 'touch'
+        }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
-        onTouchStart={onTouchStart}
+        onTouchStart={handleTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div ref={innerRef} className="animate-scroll flex gap-6 md:gap-10">
+        <div 
+          ref={innerRef} 
+          className={`flex gap-4 md:gap-10 ${
+            !isMobile ? 'animate-scroll' : ''
+          }`}
+          style={{
+            animationDuration: isMobile ? '0s' : '30s',
+            animationPlayState: isMobile ? 'paused' : 'running'
+          }}
+        >
           {loopedCategories.map((cat, index) => {
-            // Determine what to show: image > icon > default emoji
             const hasImage = cat.image && cat.image !== "";
             const displayIcon = cat.icon || "📦";
             
@@ -135,22 +172,21 @@ export default function Categories() {
                 }}
                 className="flex flex-col items-center cursor-pointer group shrink-0"
               >
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border border-gray-200 shadow-md bg-gray-100 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-40 md:h-40 rounded-full overflow-hidden border border-gray-200 shadow-md bg-gray-100 flex items-center justify-center">
                   {hasImage ? (
-                    // Show uploaded image
                     <img
                       src={cat.image}
                       alt={cat.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                      loading="lazy"
                     />
                   ) : (
-                    // Show emoji/icon
-                    <span className="text-6xl md:text-7xl group-hover:scale-110 transition duration-500">
+                    <span className="text-4xl sm:text-5xl md:text-7xl group-hover:scale-110 transition duration-500">
                       {displayIcon}
                     </span>
                   )}
                 </div>
-                <p className="mt-4 text-base md:text-lg font-medium text-center group-hover:text-yellow-600 transition capitalize">
+                <p className="mt-3 md:mt-4 text-sm sm:text-base md:text-lg font-medium text-center group-hover:text-yellow-600 transition capitalize px-1">
                   {cat.name}
                 </p>
               </div>
@@ -167,16 +203,28 @@ export default function Categories() {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
+        
+        /* Only apply animation on desktop */
+        @media (min-width: 768px) {
+          @keyframes scroll {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-33.33%);
+            }
           }
-          100% {
-            transform: translateX(-33.33%);
+          .animate-scroll {
+            animation: scroll 30s linear infinite;
           }
         }
-        .animate-scroll {
-          animation: scroll 30s linear infinite;
+        
+        /* Mobile optimizations */
+        @media (max-width: 767px) {
+          .hide-scroll {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+          }
         }
       `}</style>
     </section>

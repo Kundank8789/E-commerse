@@ -25,6 +25,8 @@ export default function Hero() {
   ];
 
   const [index, setIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,11 +46,36 @@ export default function Hero() {
     );
   };
 
-  return (
-    <section className="relative h-[75vh] md:h-[90vh] w-full overflow-hidden">
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
 
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 50) {
+      // Swipe left - next slide
+      nextSlide();
+    }
+
+    if (touchStart - touchEnd < -50) {
+      // Swipe right - previous slide
+      prevSlide();
+    }
+  };
+
+  return (
+    <section 
+      className="relative h-[60vh] sm:h-[70vh] md:h-[90vh] w-full overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* IMAGE */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         <motion.div
           key={index}
           initial={{ opacity: 0, scale: 1.05 }}
@@ -59,28 +86,27 @@ export default function Hero() {
         >
           <Image
             src={slides[index].image}
-            alt="hero"
+            alt={`Slide ${index + 1}`}
             fill
             priority
+            sizes="100vw"
             className="object-cover"
           />
         </motion.div>
       </AnimatePresence>
 
-      {/* OVERLAY */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-transparent" />
+      {/* OVERLAY - Mobile optimized gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent md:from-white/90 md:via-white/60 md:to-transparent" />
 
       {/* CONTENT */}
-      <div className="absolute inset-0 flex items-center px-5 md:px-16 z-10">
-
-        <div className="max-w-lg md:max-w-xl">
-
+      <div className="absolute inset-0 flex items-center px-4 sm:px-6 md:px-16 z-10">
+        <div className="max-w-xs sm:max-w-sm md:max-w-xl">
           {/* TAG */}
           <motion.p
             key={index + "tag"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-yellow-600 uppercase tracking-widest mb-2 text-xs md:text-sm"
+            className="text-yellow-400 md:text-yellow-600 uppercase tracking-[0.2em] md:tracking-widest mb-1.5 md:mb-2 text-[10px] sm:text-xs md:text-sm font-medium"
           >
             New Collection
           </motion.p>
@@ -91,7 +117,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-serif text-black mb-4 leading-tight"
+            className="text-2xl sm:text-3xl md:text-6xl font-serif text-white md:text-black mb-2 md:mb-4 leading-tight"
           >
             {slides[index].title}
           </motion.h1>
@@ -102,7 +128,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-gray-700 mb-6 text-base md:text-lg"
+            className="text-gray-200 md:text-gray-700 mb-4 md:mb-6 text-xs sm:text-sm md:text-lg"
           >
             {slides[index].subtitle}
           </motion.p>
@@ -112,55 +138,65 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 w-full sm:w-auto"
           >
-
-            <button className="w-full sm:w-auto bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition text-sm md:text-base">
+            <button 
+              className="w-full sm:w-auto bg-white md:bg-black text-black md:text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full hover:bg-gray-100 md:hover:bg-gray-800 transition text-xs sm:text-sm md:text-base font-medium active:scale-95"
+              onClick={() => window.location.href = '/products'}
+            >
               Shop Now
             </button>
 
-            <button className="w-full sm:w-auto border border-black px-6 py-3 rounded-full hover:bg-black hover:text-white transition text-sm md:text-base">
+            <button 
+              className="w-full sm:w-auto border border-white md:border-black text-white md:text-black px-5 sm:px-6 py-2.5 sm:py-3 rounded-full hover:bg-white hover:text-black md:hover:bg-black md:hover:text-white transition text-xs sm:text-sm md:text-base font-medium active:scale-95"
+              onClick={() => window.location.href = '/about'}
+            >
               Explore
             </button>
-
           </motion.div>
-
         </div>
       </div>
 
-      {/* LEFT ARROW */}
+      {/* LEFT ARROW - Hide on very small screens, show on larger */}
       <button
         onClick={prevSlide}
-        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-2 md:p-3 rounded-full shadow-lg transition"
+        className="hidden sm:flex absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-2 md:p-3 rounded-full shadow-lg transition hover:scale-110 active:scale-95"
+        aria-label="Previous slide"
       >
-        <FaArrowLeft className="text-black text-sm" />
+        <FaArrowLeft className="text-black text-xs sm:text-sm" />
       </button>
 
-      {/* RIGHT ARROW */}
+      {/* RIGHT ARROW - Hide on very small screens, show on larger */}
       <button
         onClick={nextSlide}
-        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-2 md:p-3 rounded-full shadow-lg transition"
+        className="hidden sm:flex absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-2 md:p-3 rounded-full shadow-lg transition hover:scale-110 active:scale-95"
+        aria-label="Next slide"
       >
-        <FaArrowRight className="text-black text-sm" />
+        <FaArrowRight className="text-black text-xs sm:text-sm" />
       </button>
 
-      {/* DOTS */}
-      <div className="absolute bottom-6 w-full flex justify-center gap-3 z-20">
-
+      {/* DOTS - Larger touch targets on mobile */}
+      <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 w-full flex justify-center gap-2 sm:gap-3 z-20">
         {slides.map((_, i) => (
-          <div
+          <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`h-2 w-2 rounded-full cursor-pointer transition ${
+            className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full cursor-pointer transition-all duration-300 ${
               i === index
-                ? "bg-black scale-125"
-                : "bg-gray-400"
+                ? "bg-white md:bg-black scale-125 shadow-lg"
+                : "bg-white/50 md:bg-gray-400 hover:bg-white/80 md:hover:bg-gray-500"
             }`}
+            aria-label={`Go to slide ${i + 1}`}
           />
         ))}
-
       </div>
 
+      {/* Slide indicator - Mobile only */}
+      <div className="absolute top-3 right-3 sm:hidden z-20 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full">
+        <span className="text-white text-xs font-medium">
+          {index + 1}/{slides.length}
+        </span>
+      </div>
     </section>
   );
 }
