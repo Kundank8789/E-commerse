@@ -1,37 +1,75 @@
 export default function ShippingAddress({ address, setAddress }) {
-  const input = "w-full px-4 py-3 rounded-2xl border border-gray-300 bg-gray-50 outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-300";
+  const input = "w-full px-3 md:px-4 py-2.5 md:py-3 rounded-xl md:rounded-2xl border border-gray-300 bg-gray-50 outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-300 text-sm md:text-base placeholder:text-xs md:placeholder:text-sm";
 
   return (
-    <div className="bg-white border border-gray-200 shadow-xl rounded-3xl p-6">
-      <h2 className="text-xl font-semibold mb-5">Shipping Address</h2>
-      <div className="space-y-4">
-
-        <div className="grid md:grid-cols-2 gap-4">
+    <div className="bg-white border border-gray-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
+      <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-5">
+        Shipping Address
+      </h2>
+      
+      <div className="space-y-3 md:space-y-4">
+        {/* City & State - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">City</label>
-            <input type="text" placeholder="City" value={address.city}
-              onChange={(e) => setAddress({ ...address, city: e.target.value })} className={input} />
+            <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 block">
+              City
+            </label>
+            <input 
+              type="text" 
+              placeholder="City" 
+              value={address.city || ''}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })} 
+              className={input}
+              autoComplete="address-level2"
+            />
           </div>
+          
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">State</label>
-            <input type="text" placeholder="State" value={address.state}
-              onChange={(e) => setAddress({ ...address, state: e.target.value })} className={input} />
+            <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 block">
+              State
+            </label>
+            <input 
+              type="text" 
+              placeholder="State" 
+              value={address.state || ''}
+              onChange={(e) => setAddress({ ...address, state: e.target.value })} 
+              className={input}
+              autoComplete="address-level1"
+            />
           </div>
         </div>
 
+        {/* Pincode */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Pincode</label>
-          <input type="text" placeholder="Pincode" value={address.pincode} maxLength={6}
-            onChange={(e) => setAddress({ ...address, pincode: e.target.value.replace(/\D/g, "") })} className={input} />
+          <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 block">
+            Pincode
+          </label>
+          <input 
+            type="text" 
+            placeholder="Pincode" 
+            value={address.pincode || ''}
+            maxLength={6}
+            onChange={(e) => setAddress({ ...address, pincode: e.target.value.replace(/\D/g, "") })} 
+            className={input}
+            autoComplete="postal-code"
+            inputMode="numeric"
+          />
         </div>
 
+        {/* Full Address */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Full Address</label>
-          <textarea rows={4} placeholder="House no, Street, Landmark..." value={address.addressLine}
+          <label className="text-xs md:text-sm font-medium text-gray-700 mb-1 block">
+            Full Address
+          </label>
+          <textarea 
+            rows={3} 
+            placeholder="House no, Street, Landmark..." 
+            value={address.addressLine || ''}
             onChange={(e) => setAddress({ ...address, addressLine: e.target.value })}
-            className={`${input} resize-none`} />
+            className={`${input} resize-none min-h-[80px] md:min-h-[100px]`}
+            autoComplete="street-address"
+          />
         </div>
-
       </div>
     </div>
   );
