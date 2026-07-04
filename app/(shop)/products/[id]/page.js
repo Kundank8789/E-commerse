@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { CheckCircle, Truck, RefreshCw, Shield, Heart, Share2, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import SimilarProducts from "@/components/SimilarProducts"; // ✅ Import Similar Products
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -562,6 +563,10 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {/* ✅ SIMILAR PRODUCTS SECTION - ADDED HERE */}
+        <SimilarProducts productId={id} />
+
       </div>
     </div>
   );
