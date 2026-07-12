@@ -7,10 +7,9 @@ export async function GET(request, { params }) {
     // Connect to MongoDB
     await connectDB();
     
-    // ✅ CRITICAL FIX: Await params before accessing
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit')) || 4;
+    const limit = parseInt(searchParams.get('limit')) || 16;
 
     // Get current product
     const currentProduct = await Product.findById(id)
@@ -27,74 +26,99 @@ export async function GET(request, { params }) {
     // Get category IDs
     const categoryIds = currentProduct.categories?.map(cat => cat._id) || [];
 
-    // Build query for similar products
-    const query = {
-      _id: { $ne: id },
-      isActive: true,
-      status: 'active',
-    };
-
-    // Priority 1: Same categories
-    if (categoryIds.length > 0) {
-      query.categories = { $in: categoryIds };
-    }
-
-    // Priority 2: Price range (±30%)
-    const priceRange = currentProduct.price * 0.3;
-    query.price = {
-      $gte: Math.max(0, currentProduct.price - priceRange),
-      $lte: currentProduct.price + priceRange,
-    };
-
     let similarProducts = [];
 
-    // Try with both category and price filters
-    similarProducts = await Product.find(query)
-      .limit(limit)
-      .select('name price images rating description mrp categories slug')
-      .populate('categories', 'name')
-      .lean();
-
-    // If not enough, remove price filter
-    if (similarProducts.length < limit) {
-      delete query.price;
-      const additionalProducts = await Product.find(query)
+    // ✅ STRATEGY 1: Get products with SAME categories (most relevant)
+    if (categoryIds.length > 0) {
+      const categoryQuery = {
+        _id: { $ne: id },
+        isActive: true,
+        status: 'active',
+        categories: { $in: categoryIds }
+      };
+      
+      const categoryProducts = await Product.find(categoryQuery)
         .limit(limit)
         .select('name price images rating description mrp categories slug')
         .populate('categories', 'name')
         .lean();
       
-      const existingIds = new Set(similarProducts.map(p => p._id.toString()));
-      const uniqueAdditional = additionalProducts.filter(
-        p => !existingIds.has(p._id.toString())
-      );
-      similarProducts = [...similarProducts, ...uniqueAdditional];
+      similarProducts = [...categoryProducts];
     }
 
-    // If still not enough, get random products
+    // ✅ STRATEGY 2: If not enough, add products with SIMILAR PRICE (±30%)
+    if (similarProducts.length < limit) {
+      const priceRange = currentProduct.price * 0.3;
+      const priceQuery = {
+        _id: { $ne: id },
+        isActive: true,
+        status: 'active',
+        price: {
+          $gte: Math.max(0, currentProduct.price - priceRange),
+          $lte: currentProduct.price + priceRange,
+        }
+      };
+      
+      // Exclude already fetched products
+      if (similarProducts.length > 0) {
+        const existingIds = similarProducts.map(p => p._id.toString());
+        priceQuery._id = { 
+          $ne: id,
+          $nin: existingIds 
+        };
+      }
+      
+      const priceProducts = await Product.find(priceQuery)
+        .limit(limit - similarProducts.length)
+        .select('name price images rating description mrp categories slug')
+        .populate('categories', 'name')
+        .lean();
+      
+      similarProducts = [...similarProducts, ...priceProducts];
+    }
+
+    // ✅ STRATEGY 3: If still not enough, get ANY OTHER products
     if (similarProducts.length < limit) {
       const randomQuery = {
         _id: { $ne: id },
         isActive: true,
         status: 'active',
       };
+      
+      if (similarProducts.length > 0) {
+        const existingIds = similarProducts.map(p => p._id.toString());
+        randomQuery._id = { 
+          $ne: id,
+          $nin: existingIds 
+        };
+      }
+      
       const randomProducts = await Product.find(randomQuery)
         .limit(limit - similarProducts.length)
         .select('name price images rating description mrp categories slug')
         .populate('categories', 'name')
         .lean();
       
-      const existingIds = new Set(similarProducts.map(p => p._id.toString()));
-      const uniqueRandom = randomProducts.filter(
-        p => !existingIds.has(p._id.toString())
-      );
-      similarProducts = [...similarProducts, ...uniqueRandom];
+      similarProducts = [...similarProducts, ...randomProducts];
+    }
+
+    // ✅ STRATEGY 4: If STILL not enough (less than 16 products in DB), duplicate what we have
+    if (similarProducts.length < limit && similarProducts.length > 0) {
+      const originalLength = similarProducts.length;
+      while (similarProducts.length < limit) {
+        const duplicateIndex = similarProducts.length % originalLength;
+        const dupProduct = { 
+          ...similarProducts[duplicateIndex],
+          _id: similarProducts[duplicateIndex]._id + '_dup_' + similarProducts.length
+        };
+        similarProducts.push(dupProduct);
+      }
     }
 
     // Shuffle for variety
     const shuffled = similarProducts.sort(() => 0.5 - Math.random());
 
-    // Format response
+    // Format response - ensure all IDs are strings
     const formattedProducts = shuffled.map(product => ({
       ...product,
       _id: product._id.toString(),

@@ -23,7 +23,6 @@ export default function SimilarProducts({ productId }) {
 
       if (newItemsPerView !== itemsPerView) {
         setItemsPerView(newItemsPerView);
-        // Reset slide when items per view changes
         setCurrentSlide(0);
       }
     };
@@ -38,14 +37,40 @@ export default function SimilarProducts({ productId }) {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`/api/products/similar/${productId}?limit=12`);
+        const response = await fetch(`/api/products/similar/${productId}?limit=16`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch similar products');
         }
         
         const data = await response.json();
-        setProducts(data);
+        
+        // ✅ Log to see what's being returned
+        console.log('📦 API returned products:', data.length);
+        console.log('📦 First product:', data[0]?.name);
+        
+        let productsData = Array.isArray(data) ? data : (data.products || data.data || []);
+        
+        // ✅ If less than 16, duplicate to reach 16
+        if (productsData.length < 16 && productsData.length > 0) {
+          console.log('🔄 Duplicating products to reach 16');
+          const duplicated = [];
+          while (duplicated.length < 16) {
+            for (const product of productsData) {
+              if (duplicated.length < 16) {
+                // Create a copy with a unique key
+                duplicated.push({
+                  ...product,
+                  _id: product._id + '_dup_' + duplicated.length
+                });
+              }
+            }
+          }
+          productsData = duplicated;
+        }
+        
+        console.log('📦 Final products count:', productsData.length);
+        setProducts(productsData);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching similar products:', err);

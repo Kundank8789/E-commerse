@@ -4,15 +4,13 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useEffect, useState } from "react";
-import QuickViewModal from "@/components/product/QuickViewModal";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export default function NewArrivals() {
   const { addToCart } = useCart();
 
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -120,76 +118,64 @@ export default function NewArrivals() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(index * 0.05, 0.3) }}
               viewport={{ once: true, margin: "-50px" }}
-              className="group relative bg-white rounded-xl md:rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] md:active:scale-100"
+              className="group relative bg-white rounded-xl md:rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] md:active:scale-100 cursor-pointer"
             >
-              {/* Image */}
-              <div className="relative overflow-hidden bg-gray-100">
-                {image ? (
-                  <Image
-                    src={image}
-                    alt={product.name || "product"}
-                    width={500}
-                    height={500}
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="w-full h-[140px] sm:h-[180px] md:h-[260px] object-cover group-hover:scale-105 transition duration-500"
-                    priority={index < 2}
-                    loading={index < 2 ? "eager" : "lazy"}
-                  />
-                ) : (
-                  <div className="w-full h-[140px] sm:h-[180px] md:h-[260px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs sm:text-sm">
-                    <div className="flex flex-col items-center">
-                      <svg className="w-6 h-6 sm:w-8 sm:h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      No Image
+              <Link href={`/products/${product._id}`} className="block">
+                {/* Image */}
+                <div className="relative overflow-hidden bg-gray-100">
+                  {image ? (
+                    <Image
+                      src={image}
+                      alt={product.name || "product"}
+                      width={500}
+                      height={500}
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="w-full h-[140px] sm:h-[180px] md:h-[260px] object-cover group-hover:scale-105 transition duration-500"
+                      priority={index < 2}
+                      loading={index < 2 ? "eager" : "lazy"}
+                    />
+                  ) : (
+                    <div className="w-full h-[140px] sm:h-[180px] md:h-[260px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs sm:text-sm">
+                      <div className="flex flex-col items-center">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        No Image
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Tag - Mobile optimized */}
-                <span className="absolute top-2 left-2 bg-black text-white text-[8px] sm:text-[10px] px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-semibold">
-                  NEW
-                </span>
-
-                {/* Quick View - Only on hover for desktop, hidden on mobile */}
-                <div className="absolute inset-0 bg-black/0 md:bg-black/20 opacity-0 md:group-hover:opacity-100 transition flex items-center justify-center">
-                  <button
-                    onClick={() => setSelectedProduct(product)}
-                    className="bg-black text-white px-2.5 py-1.5 sm:px-5 sm:py-2 rounded-full text-[10px] sm:text-sm font-medium hover:scale-105 transition active:scale-95 md:block hidden"
-                  >
-                    Quick View
-                  </button>
+                  {/* Tag - Mobile optimized */}
+                  <span className="absolute top-2 left-2 bg-black text-white text-[8px] sm:text-[10px] px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-semibold">
+                    NEW
+                  </span>
                 </div>
 
-                {/* Quick View button for mobile - visible always */}
+                {/* Content */}
+                <div className="p-2 sm:p-3 md:p-4">
+                  <h3 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1 min-h-[1.5rem] md:min-h-[2rem]">
+                    {product.name}
+                  </h3>
+
+                  <p className="text-gray-600 mt-0.5 md:mt-1 text-sm sm:text-base font-medium">
+                    ₹{product.price?.toLocaleString() || product.price}
+                  </p>
+                </div>
+              </Link>
+
+              {/* Add to Cart - Outside the link to prevent navigation */}
+              <div className="px-2 sm:px-3 md:px-4 pb-2 sm:pb-3 md:pb-4">
                 <button
-                  onClick={() => setSelectedProduct(product)}
-                  className="md:hidden absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-[10px] font-medium active:scale-95"
-                >
-                  Quick View
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="p-2 sm:p-3 md:p-4">
-                <h3 className="text-xs sm:text-sm md:text-base font-semibold line-clamp-1 min-h-[1.5rem] md:min-h-[2rem]">
-                  {product.name}
-                </h3>
-
-                <p className="text-gray-600 mt-0.5 md:mt-1 text-sm sm:text-base font-medium">
-                  ₹{product.price?.toLocaleString() || product.price}
-                </p>
-
-                {/* Add to Cart */}
-                <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     addToCart(product);
                     toast.success("Added to cart 🛒", {
                       duration: 2000,
                       position: 'bottom-center',
                     });
                   }}
-                  className="mt-2 md:mt-3 w-full bg-black text-white py-1.5 sm:py-2 rounded-full text-[10px] sm:text-sm font-medium hover:bg-gray-800 transition active:bg-gray-700 active:scale-95"
+                  className="w-full bg-black text-white py-1.5 sm:py-2 rounded-full text-[10px] sm:text-sm font-medium hover:bg-gray-800 transition active:bg-gray-700 active:scale-95"
                 >
                   Add to Cart
                 </button>
@@ -208,14 +194,6 @@ export default function NewArrivals() {
           View All Products →
         </button>
       </div>
-
-      {/* Modal */}
-      {selectedProduct && (
-        <QuickViewModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
     </section>
   );
 }
